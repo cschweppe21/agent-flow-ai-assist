@@ -4,7 +4,7 @@ import { AuthForm } from "@/components/AuthForm"
 import { useAuth } from "@/components/AuthProvider"
 
 const Index = () => {
-  const { isAuthenticated, isLoading, login } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
     return (
@@ -18,7 +18,7 @@ const Index = () => {
   }
 
   if (!isAuthenticated) {
-    return <AuthForm onSuccess={login} />
+    return <AuthForm />
   }
 
   return (

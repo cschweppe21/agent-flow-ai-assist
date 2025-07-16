@@ -4,7 +4,7 @@ import { useAuth } from "@/components/AuthProvider"
 import { Bell, Menu, User, LogOut } from "lucide-react"
 
 export const Header = () => {
-  const { user, logout } = useAuth()
+  const { user, profile, signOut } = useAuth()
 
   const roleBadgeVariants = {
     free: 'secondary' as const,
@@ -29,12 +29,12 @@ export const Header = () => {
           <div className="flex items-center space-x-4">
             {user && (
               <div className="flex items-center space-x-3">
-                <Badge variant={roleBadgeVariants[user.role]} className="text-xs">
-                  {user.role.toUpperCase()}
+                <Badge variant={roleBadgeVariants[profile?.role || 'free']} className="text-xs">
+                  {(profile?.role || 'free').toUpperCase()}
                 </Badge>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-white">{user.name}</p>
-                  <p className="text-xs text-white/70">{user.email}</p>
+                  <p className="text-sm font-medium text-white">{profile?.display_name || 'User'}</p>
+                  <p className="text-xs text-white/70">{user?.email}</p>
                 </div>
               </div>
             )}
@@ -54,7 +54,7 @@ export const Header = () => {
               variant="ghost" 
               size="icon" 
               className="text-white hover:bg-white/10"
-              onClick={logout}
+              onClick={signOut}
               title="Logout"
             >
               <LogOut className="h-5 w-5" />

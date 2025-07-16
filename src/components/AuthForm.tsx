@@ -5,12 +5,10 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react"
+import { useAuth } from "@/components/AuthProvider"
 
-interface AuthFormProps {
-  onSuccess: (user: any) => void
-}
-
-export const AuthForm = ({ onSuccess }: AuthFormProps) => {
+export const AuthForm = () => {
+  const { signIn, signUp } = useAuth()
   const [isLogin, setIsLogin] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -19,22 +17,31 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
     name: '',
     role: 'free' as 'free' | 'pro' | 'team'
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock authentication - in real app this would call Supabase auth
-    const mockUser = {
-      id: '1',
-      email: formData.email,
-      name: formData.name || 'Agent',
-      role: formData.role,
-      subscription: {
-        active: formData.role !== 'free',
-        tier: formData.role,
-        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    setIsLoading(true)
+    setError('')
+    
+    try {
+      if (isLogin) {
+        const { error } = await signIn(formData.email, formData.password)
+        if (error) {
+          setError(error.message)
+        }
+      } else {
+        const { error } = await signUp(formData.email, formData.password, formData.name)
+        if (error) {
+          setError(error.message)
+        }
       }
+    } catch (err) {
+      setError('An unexpected error occurred')
+    } finally {
+      setIsLoading(false)
     }
-    onSuccess(mockUser)
   }
 
   const roleBadges = {
@@ -142,8 +149,12 @@ export const AuthForm = ({ onSuccess }: AuthFormProps) => {
               </div>
             )}
             
-            <Button type="submit" variant="hero" className="w-full">
-              {isLogin ? 'Sign In' : 'Create Account'}
+            {error && (
+              <div className="text-sm text-red-500 text-center">{error}</div>
+            )}
+            
+            <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Loading...' : (isLogin ? 'Sign In' : 'Create Account')}
             </Button>
           </form>
           
