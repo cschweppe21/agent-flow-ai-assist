@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 .from('profiles')
                 .select('*')
                 .eq('user_id', session.user.id)
-                .single()
+                .maybeSingle()
               
               setProfile(profileData as Profile)
             } catch (error) {
