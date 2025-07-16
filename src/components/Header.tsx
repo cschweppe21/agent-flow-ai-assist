@@ -21,8 +21,8 @@ export const Header = () => {
               <Menu className="h-5 w-5" />
             </Button>
             <div className="ml-4">
-              <h1 className="text-xl font-bold text-white">RealEstate Pro</h1>
-              <p className="text-sm text-white/80">Your commission tracking companion</p>
+              <h1 className="text-xl font-bold text-white">SlipStream</h1>
+              <p className="text-sm text-white/80">Real Estate Commission Tracker</p>
             </div>
           </div>
           

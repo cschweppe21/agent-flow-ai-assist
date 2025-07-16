@@ -1,6 +1,6 @@
 {
-  "name": "RealEstate Pro - Commission Tracker",
-  "short_name": "RealEstate Pro",
+  "name": "SlipStream - Real Estate Commission Tracker",
+  "short_name": "SlipStream",
   "description": "Progressive Web App for residential real estate agents to track commissions, manage clients, and organize workload.",
   "start_url": "/",
   "display": "standalone",
