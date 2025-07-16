@@ -1,7 +1,7 @@
-import { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Bot, X, Send } from "lucide-react";
+import { Bot, X, Send, Move } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/components/ui/use-toast";
@@ -26,6 +26,39 @@ export const AIModal = ({ children, initialMessage }: AIModalProps) => {
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId] = useState(() => crypto.randomUUID());
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef<HTMLDivElement>(null);
+  const startPos = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    startPos.current = { x: e.clientX - position.x, y: e.clientY - position.y };
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+    setPosition({
+      x: e.clientX - startPos.current.x,
+      y: e.clientY - startPos.current.y
+    });
+  }, [isDragging]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Add event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleSendMessage = async (messageText?: string) => {
     const messageToSend = messageText || inputMessage;
@@ -79,6 +112,10 @@ export const AIModal = ({ children, initialMessage }: AIModalProps) => {
     if (open && initialMessage) {
       handleSendMessage(initialMessage);
     }
+    // Reset position when closing
+    if (!open) {
+      setPosition({ x: 0, y: 0 });
+    }
   };
 
   return (
@@ -86,17 +123,31 @@ export const AIModal = ({ children, initialMessage }: AIModalProps) => {
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] h-[600px] flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent 
+        className="sm:max-w-[400px] h-[700px] flex flex-col p-0 overflow-hidden"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px)`,
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          marginLeft: '-200px',
+          marginTop: '-350px'
+        }}
+      >
+        <div 
+          className="p-4 border-b bg-muted/30 cursor-move select-none"
+          onMouseDown={handleMouseDown}
+          ref={dragRef}
+        >
+          <div className="flex items-center gap-2">
+            <Move className="h-4 w-4 text-muted-foreground" />
             <Bot className="h-5 w-5 text-primary" />
-            SlipStream AI Assistant
-          </DialogTitle>
-        </DialogHeader>
-        
+            <span className="font-semibold">SlipStream AI Assistant</span>
+          </div>
+        </div>
         <div className="flex-1 flex flex-col">
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30 rounded-lg">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/30">
             {messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-12 w-12 mx-auto mb-4 text-primary" />

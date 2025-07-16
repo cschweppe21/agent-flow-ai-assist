@@ -80,7 +80,6 @@ export const Dashboard = () => {
           value="$48,750"
           icon={<DollarSign />}
           trend={{ value: 15, isPositive: true }}
-          variant="success"
         />
         <MetricsCard
           title="Avg. Days on Market"
