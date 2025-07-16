@@ -1,14 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Header } from "@/components/Header"
+import { Dashboard } from "@/components/Dashboard"
+import { AuthForm } from "@/components/AuthForm"
+import { useAuth } from "@/components/AuthProvider"
 
 const Index = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+  const { isAuthenticated, isLoading, login } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-hero flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading RealEstate Pro...</p>
+        </div>
       </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <AuthForm onSuccess={login} />
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <Dashboard />
     </div>
-  );
+  )
 };
 
 export default Index;
