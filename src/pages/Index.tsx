@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header"
 import { Dashboard } from "@/components/Dashboard"
 import { AuthForm } from "@/components/AuthForm"
+import { FloatingAIButton } from "@/components/FloatingAIButton"
 import { useAuth } from "@/components/AuthProvider"
 
 const Index = () => {
@@ -25,6 +26,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <Dashboard />
+      <FloatingAIButton />
     </div>
   )
 };

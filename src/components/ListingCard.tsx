@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar, DollarSign, MapPin, MoreHorizontal } from "lucide-react"
+import { Calendar, DollarSign, MapPin, MoreHorizontal, Bot } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Link } from "react-router-dom"
 
 interface ListingCardProps {
   id: string
@@ -16,6 +17,7 @@ interface ListingCardProps {
 }
 
 export const ListingCard = ({
+  id,
   address,
   price,
   commissionRate,
@@ -94,9 +96,17 @@ export const ListingCard = ({
         
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Last activity: {lastActivity}</span>
-          <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground">
-            View Details
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground">
+              View Details
+            </Button>
+            <Button variant="ghost" size="sm" className="hover:bg-secondary" asChild>
+              <Link to={`/ai-assistant?listing=${id}`}>
+                <Bot className="h-4 w-4 mr-1" />
+                Ask AI
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

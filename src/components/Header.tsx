@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/AuthProvider";
-import { Bell, Menu, User, LogOut } from "lucide-react";
+import { Bell, Menu, User, LogOut, Bot } from "lucide-react";
+import { Link } from "react-router-dom";
 export const Header = () => {
   const {
     user,
@@ -42,6 +43,12 @@ export const Header = () => {
               <span className="absolute -top-1 -right-1 h-4 w-4 bg-warning rounded-full flex items-center justify-center text-xs text-white font-bold">
                 3
               </span>
+            </Button>
+            
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" asChild>
+              <Link to="/ai-assistant" title="AI Assistant">
+                <Bot className="h-5 w-5" />
+              </Link>
             </Button>
             
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">

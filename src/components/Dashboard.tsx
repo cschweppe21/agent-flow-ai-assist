@@ -12,8 +12,11 @@ import {
   TrendingUp,
   Users,
   CheckCircle,
-  Clock
+  Clock,
+  Bot,
+  MessageSquare
 } from "lucide-react"
+import { Link } from "react-router-dom"
 
 export const Dashboard = () => {
   // Mock data - in real app this would come from state/API
@@ -133,6 +136,12 @@ export const Dashboard = () => {
               <Button variant="outline" className="w-full justify-start">
                 <DollarSign className="h-4 w-4 mr-2" />
                 Track Commission
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link to="/ai-assistant">
+                  <Bot className="h-4 w-4 mr-2" />
+                  AI Assistant
+                </Link>
               </Button>
             </CardContent>
           </Card>
