@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Calendar, DollarSign, MapPin, MoreHorizontal, Bot } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Link } from "react-router-dom"
+import { AIModal } from "@/components/AIModal"
 
 interface ListingCardProps {
   id: string
@@ -100,12 +100,12 @@ export const ListingCard = ({
             <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground">
               View Details
             </Button>
-            <Button variant="ghost" size="sm" className="hover:bg-secondary" asChild>
-              <Link to={`/ai-assistant?listing=${id}`}>
+            <AIModal initialMessage={`Tell me about this property: ${address}. It's priced at $${price.toLocaleString()} with ${commissionRate}% commission rate. It's been on the market for ${daysOnMarket} days and the status is ${statusLabels[status]}. Client: ${clientName}.`}>
+              <Button variant="ghost" size="sm" className="hover:bg-secondary">
                 <Bot className="h-4 w-4 mr-1" />
                 Ask AI
-              </Link>
-            </Button>
+              </Button>
+            </AIModal>
           </div>
         </div>
       </CardContent>

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/AuthProvider";
 import { Bell, Menu, User, LogOut, Bot } from "lucide-react";
-import { Link } from "react-router-dom";
+import { AIModal } from "@/components/AIModal";
 export const Header = () => {
   const {
     user,
@@ -45,11 +45,11 @@ export const Header = () => {
               </span>
             </Button>
             
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" asChild>
-              <Link to="/ai-assistant" title="AI Assistant">
+            <AIModal>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" title="AI Assistant">
                 <Bot className="h-5 w-5" />
-              </Link>
-            </Button>
+              </Button>
+            </AIModal>
             
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
               <User className="h-5 w-5" />

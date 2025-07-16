@@ -16,7 +16,7 @@ import {
   Bot,
   MessageSquare
 } from "lucide-react"
-import { Link } from "react-router-dom"
+import { AIModal } from "@/components/AIModal"
 
 export const Dashboard = () => {
   // Mock data - in real app this would come from state/API
@@ -137,12 +137,12 @@ export const Dashboard = () => {
                 <DollarSign className="h-4 w-4 mr-2" />
                 Track Commission
               </Button>
-              <Button variant="outline" className="w-full justify-start" asChild>
-                <Link to="/ai-assistant">
+              <AIModal>
+                <Button variant="outline" className="w-full justify-start">
                   <Bot className="h-4 w-4 mr-2" />
                   AI Assistant
-                </Link>
-              </Button>
+                </Button>
+              </AIModal>
             </CardContent>
           </Card>
 
