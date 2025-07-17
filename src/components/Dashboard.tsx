@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { MetricsCard } from "@/components/MetricsCard"
 import { ListingCard } from "@/components/ListingCard"
 import { Button } from "@/components/ui/button"
@@ -20,13 +21,15 @@ import {
   CheckCircle,
   Clock,
   Bot,
-  MessageSquare
+  MessageSquare,
+  Phone
 } from "lucide-react"
 import { AIModal } from "@/components/AIModal"
 
 export const Dashboard = () => {
   const { listings, commissions, tasks, loading, error, metrics } = useDashboardData()
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'tasks' | 'market' | null>(null)
+  const navigate = useNavigate()
 
   if (loading) {
     return (
@@ -102,7 +105,7 @@ export const Dashboard = () => {
             trend={{ value: -5, isPositive: true }}
           />
         </div>
-        <div onClick={() => setActiveChart('tasks')} className="cursor-pointer">
+        <div onClick={() => navigate('/tasks')} className="cursor-pointer">
           <MetricsCard
             title="Overdue Tasks"
             value={metrics.overdueTasks}
@@ -146,8 +149,8 @@ export const Dashboard = () => {
                 Manage Clients
               </Button>
               <Button variant="outline" className="w-full justify-start">
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule Viewing
+                <Phone className="h-4 w-4 mr-2" />
+                Contact Vendor
               </Button>
               <Button variant="outline" className="w-full justify-start">
                 <DollarSign className="h-4 w-4 mr-2" />
