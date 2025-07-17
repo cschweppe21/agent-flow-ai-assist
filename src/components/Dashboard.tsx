@@ -1,8 +1,14 @@
+import { useState } from "react"
 import { MetricsCard } from "@/components/MetricsCard"
 import { ListingCard } from "@/components/ListingCard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ListingsChart } from "./charts/ListingsChart"
+import { CommissionChart } from "./charts/CommissionChart"
+import { TaskChart } from "./charts/TaskChart"
+import { MarketChart } from "./charts/MarketChart"
+import { useDashboardData } from "@/hooks/useDashboardData"
 import { 
   Home, 
   DollarSign, 
@@ -19,46 +25,49 @@ import {
 import { AIModal } from "@/components/AIModal"
 
 export const Dashboard = () => {
-  // Mock data - in real app this would come from state/API
-  const mockListings = [
-    {
-      id: "1",
-      address: "123 Oak Street, Beverly Hills",
-      price: 1250000,
-      commissionRate: 3,
-      status: "active" as const,
-      daysOnMarket: 14,
-      lastActivity: "2 hours ago",
-      clientName: "John Smith"
-    },
-    {
-      id: "2",
-      address: "456 Maple Avenue, Hollywood",
-      price: 850000,
-      commissionRate: 2.5,
-      status: "pending" as const,
-      daysOnMarket: 28,
-      lastActivity: "1 day ago",
-      clientName: "Sarah Johnson"
-    },
-    {
-      id: "3",
-      address: "789 Pine Boulevard, Malibu",
-      price: 2100000,
-      commissionRate: 3.5,
-      status: "sold" as const,
-      daysOnMarket: 45,
-      lastActivity: "3 days ago",
-      clientName: "Mike Wilson"
-    }
-  ]
+  const { listings, commissions, tasks, loading, error, metrics } = useDashboardData()
+  const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'tasks' | 'market' | null>(null)
 
-  const mockTasks = [
-    { id: "1", title: "Follow up with potential buyer", client: "John Smith", dueDate: "Today", overdue: false },
-    { id: "2", title: "Schedule property inspection", client: "Sarah Johnson", dueDate: "Tomorrow", overdue: false },
-    { id: "3", title: "Prepare listing presentation", client: "Mike Wilson", dueDate: "Yesterday", overdue: true },
-    { id: "4", title: "Review contract terms", client: "Lisa Brown", dueDate: "Nov 20", overdue: true }
-  ]
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <p className="text-destructive">Error loading dashboard: {error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Convert real data to display format
+  const displayListings = listings.slice(0, 3).map(listing => ({
+    id: listing.id,
+    address: listing.address,
+    price: listing.price,
+    commissionRate: 3, // Default commission rate
+    status: listing.status === 'withdrawn' ? 'expired' as const : listing.status,
+    daysOnMarket: listing.listing_date ? Math.ceil((Date.now() - new Date(listing.listing_date).getTime()) / (1000 * 3600 * 24)) : 0,
+    lastActivity: "Recently",
+    clientName: "Client"
+  }))
+
+  const upcomingTasks = tasks.filter(task => !task.completed).slice(0, 4).map(task => ({
+    id: task.id,
+    title: task.title,
+    client: "Client",
+    dueDate: task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due date",
+    overdue: task.due_date ? new Date(task.due_date) < new Date() : false
+  }))
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -69,30 +78,38 @@ export const Dashboard = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <MetricsCard
-          title="Active Listings"
-          value="12"
-          icon={<Home />}
-          trend={{ value: 8, isPositive: true }}
-        />
-        <MetricsCard
-          title="Total Commission"
-          value="$48,750"
-          icon={<DollarSign />}
-          trend={{ value: 15, isPositive: true }}
-        />
-        <MetricsCard
-          title="Avg. Days on Market"
-          value="28"
-          icon={<Calendar />}
-          trend={{ value: -5, isPositive: true }}
-        />
-        <MetricsCard
-          title="Overdue Tasks"
-          value="3"
-          icon={<AlertTriangle />}
-          variant="warning"
-        />
+        <div onClick={() => setActiveChart('listings')} className="cursor-pointer">
+          <MetricsCard
+            title="Active Listings"
+            value={metrics.activeListings}
+            icon={<Home />}
+            trend={{ value: 8, isPositive: true }}
+          />
+        </div>
+        <div onClick={() => setActiveChart('commissions')} className="cursor-pointer">
+          <MetricsCard
+            title="Total Commission"
+            value={`$${metrics.thisYearCommission.toLocaleString()}`}
+            icon={<DollarSign />}
+            trend={{ value: 15, isPositive: true }}
+          />
+        </div>
+        <div onClick={() => setActiveChart('market')} className="cursor-pointer">
+          <MetricsCard
+            title="Avg. Days on Market"
+            value={metrics.avgDaysOnMarket || 'N/A'}
+            icon={<Calendar />}
+            trend={{ value: -5, isPositive: true }}
+          />
+        </div>
+        <div onClick={() => setActiveChart('tasks')} className="cursor-pointer">
+          <MetricsCard
+            title="Overdue Tasks"
+            value={metrics.overdueTasks}
+            icon={<AlertTriangle />}
+            variant={metrics.overdueTasks > 0 ? "warning" : "default"}
+          />
+        </div>
       </div>
 
       {/* Main Content Grid */}
@@ -107,7 +124,7 @@ export const Dashboard = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {mockListings.map((listing) => (
+            {displayListings.map((listing) => (
               <ListingCard key={listing.id} {...listing} />
             ))}
           </div>
@@ -155,7 +172,7 @@ export const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mockTasks.map((task) => (
+                {upcomingTasks.map((task) => (
                   <div key={task.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
                     <div className="flex-1">
                       <p className="font-medium text-sm text-foreground">{task.title}</p>
@@ -209,6 +226,20 @@ export const Dashboard = () => {
           </Card>
         </div>
       </div>
+
+      {/* Chart Modals */}
+      {activeChart === 'listings' && (
+        <ListingsChart listings={listings} onClose={() => setActiveChart(null)} />
+      )}
+      {activeChart === 'commissions' && (
+        <CommissionChart commissions={commissions} onClose={() => setActiveChart(null)} />
+      )}
+      {activeChart === 'tasks' && (
+        <TaskChart tasks={tasks} onClose={() => setActiveChart(null)} />
+      )}
+      {activeChart === 'market' && (
+        <MarketChart listings={listings} onClose={() => setActiveChart(null)} />
+      )}
     </div>
   )
 }
