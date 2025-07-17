@@ -52,8 +52,8 @@ export const Dashboard = () => {
     )
   }
 
-  // Convert real data to display format
-  const displayListings = listings.slice(0, 3).map(listing => ({
+  // Convert real data to display format - only show active listings
+  const displayListings = listings.filter(listing => listing.status === 'active').slice(0, 3).map(listing => ({
     id: listing.id,
     address: listing.address,
     price: listing.price,
@@ -120,7 +120,7 @@ export const Dashboard = () => {
         {/* Recent Listings */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-foreground">Recent Listings</h3>
+            <h3 className="text-2xl font-bold text-foreground">Active Listings</h3>
             <Button variant="hero" className="shadow-elevated">
               <Plus className="h-4 w-4 mr-2" />
               Add Listing

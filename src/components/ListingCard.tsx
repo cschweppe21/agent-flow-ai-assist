@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, DollarSign, MapPin, MoreHorizontal, Bot } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AIModal } from "@/components/AIModal"
+import { useNavigate } from "react-router-dom"
 
 interface ListingCardProps {
   id: string
@@ -26,6 +27,7 @@ export const ListingCard = ({
   lastActivity,
   clientName
 }: ListingCardProps) => {
+  const navigate = useNavigate()
   const statusStyles = {
     active: "bg-listing-active text-white",
     pending: "bg-listing-pending text-white",
@@ -97,7 +99,12 @@ export const ListingCard = ({
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Last activity: {lastActivity}</span>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="hover:bg-primary hover:text-primary-foreground">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="hover:bg-primary hover:text-primary-foreground"
+              onClick={() => navigate(`/listing/${id}`)}
+            >
               View Details
             </Button>
             <AIModal initialMessage={`Tell me about this property: ${address}. It's priced at $${price.toLocaleString()} with ${commissionRate}% commission rate. It's been on the market for ${daysOnMarket} days and the status is ${statusLabels[status]}. Client: ${clientName}.`}>
