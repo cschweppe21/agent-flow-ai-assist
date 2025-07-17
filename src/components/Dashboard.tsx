@@ -121,10 +121,18 @@ export const Dashboard = () => {
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-bold text-foreground">Active Listings</h3>
-            <Button variant="hero" className="shadow-elevated">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Listing
-            </Button>
+            <div className="flex items-center space-x-3">
+              <AIModal initialMessage="I'd like help managing my active listings. Can you provide insights and suggestions for improving my current active listings performance?">
+                <Button variant="outline" className="shadow-elevated">
+                  <Bot className="h-4 w-4 mr-2" />
+                  AI Listing Assistant
+                </Button>
+              </AIModal>
+              <Button variant="hero" className="shadow-elevated">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Listing
+              </Button>
+            </div>
           </div>
           <div className="space-y-4">
             {displayListings.map((listing) => (
