@@ -8,7 +8,7 @@ import { ListingsChart } from "./charts/ListingsChart"
 import { CommissionChart } from "./charts/CommissionChart"
 import { TaskChart } from "./charts/TaskChart"
 import { MarketChart } from "./charts/MarketChart"
-import { useDashboardData } from "@/hooks/useDashboardData"
+import { useMockDashboardData as useDashboardData } from "@/hooks/useMockDashboardData"
 import { 
   Home, 
   DollarSign, 
