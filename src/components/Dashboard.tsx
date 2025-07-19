@@ -87,6 +87,10 @@ export const Dashboard = () => {
             value={metrics.activeListings}
             icon={<Home />}
             trend={{ value: 8, isPositive: true }}
+            data={[
+              { value: 8 }, { value: 12 }, { value: 9 }, { value: 15 }, 
+              { value: 18 }, { value: 22 }, { value: metrics.activeListings }
+            ]}
           />
         </div>
         <div onClick={() => setActiveChart('commissions')} className="cursor-pointer">
@@ -95,6 +99,11 @@ export const Dashboard = () => {
             value={`$${metrics.thisYearCommission.toLocaleString()}`}
             icon={<DollarSign />}
             trend={{ value: 15, isPositive: true }}
+            variant="success"
+            data={[
+              { value: 45000 }, { value: 52000 }, { value: 48000 }, { value: 61000 }, 
+              { value: 67000 }, { value: 74000 }, { value: metrics.thisYearCommission }
+            ]}
           />
         </div>
         <div onClick={() => setActiveChart('market')} className="cursor-pointer">
@@ -103,6 +112,10 @@ export const Dashboard = () => {
             value={metrics.avgDaysOnMarket || 'N/A'}
             icon={<Calendar />}
             trend={{ value: -5, isPositive: true }}
+            data={[
+              { value: 45 }, { value: 42 }, { value: 38 }, { value: 35 }, 
+              { value: 33 }, { value: 30 }, { value: metrics.avgDaysOnMarket || 28 }
+            ]}
           />
         </div>
         <div onClick={() => navigate('/tasks')} className="cursor-pointer">
@@ -111,6 +124,10 @@ export const Dashboard = () => {
             value={metrics.overdueTasks}
             icon={<AlertTriangle />}
             variant={metrics.overdueTasks > 0 ? "warning" : "default"}
+            data={[
+              { value: 5 }, { value: 3 }, { value: 7 }, { value: 4 }, 
+              { value: 2 }, { value: 1 }, { value: metrics.overdueTasks }
+            ]}
           />
         </div>
       </div>

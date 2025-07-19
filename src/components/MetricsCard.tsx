@@ -1,5 +1,6 @@
 import { ReactNode } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { LineChart, Line, ResponsiveContainer } from 'recharts'
 import { cn } from "@/lib/utils"
 
 interface MetricsCardProps {
@@ -10,6 +11,7 @@ interface MetricsCardProps {
     value: number
     isPositive: boolean
   }
+  data?: Array<{ value: number }>
   className?: string
   variant?: 'default' | 'success' | 'warning' | 'destructive'
 }
@@ -19,6 +21,7 @@ export const MetricsCard = ({
   value, 
   icon, 
   trend, 
+  data,
   className,
   variant = 'default'
 }: MetricsCardProps) => {
@@ -51,7 +54,29 @@ export const MetricsCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold text-foreground">{value}</div>
+          {data && (
+            <div className="h-8 w-16">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={data}>
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke={cn(
+                      variant === 'success' ? 'hsl(var(--success))' :
+                      variant === 'warning' ? 'hsl(var(--warning))' :
+                      variant === 'destructive' ? 'hsl(var(--destructive))' :
+                      'hsl(var(--primary))'
+                    )}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
         {trend && (
           <div className="flex items-center mt-1">
             <span className={cn(
