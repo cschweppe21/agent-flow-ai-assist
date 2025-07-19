@@ -1,7 +1,10 @@
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/AuthProvider";
-import { Bell, Menu, User, LogOut } from "lucide-react";
+import { Bell, Menu, LogOut } from "lucide-react";
+import { OptionsMenu } from "@/components/OptionsMenu";
+
 export const Header = () => {
   const {
     user,
@@ -44,9 +47,7 @@ export const Header = () => {
               </span>
             </Button>
             
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-              <User className="h-5 w-5" />
-            </Button>
+            <OptionsMenu />
             
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={signOut} title="Logout">
               <LogOut className="h-5 w-5" />
