@@ -209,31 +209,68 @@ export const Dashboard = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Quick Actions */}
+          {/* Active Clients */}
           <Card className="shadow-card bg-gradient-card border-border/50">
             <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                Quick Actions
+              <CardTitle className="flex items-center justify-between text-foreground">
+                <div className="flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-primary" />
+                  Active Clients
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.activeBuyers + metrics.activeListings}
+                </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-2" />
-                Manage Clients
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Phone className="h-4 w-4 mr-2" />
-                Contact Vendor
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <DollarSign className="h-4 w-4 mr-2" />
-                Track Commission
-              </Button>
-              <AIModal>
+            <CardContent className="space-y-4">
+              {/* Active Buyers Summary */}
+              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                <div className="flex items-center">
+                  <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium text-sm text-foreground">Active Buyers</p>
+                    <p className="text-xs text-muted-foreground">Looking for properties</p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.activeBuyers}
+                </Badge>
+              </div>
+
+              {/* Active Listings Summary */}
+              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                <div className="flex items-center">
+                  <Home className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium text-sm text-foreground">Active Listings</p>
+                    <p className="text-xs text-muted-foreground">On the market</p>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="text-xs">
+                  {metrics.activeListings}
+                </Badge>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <SmartAddDialog type="buyer" onSuccess={() => window.location.reload()}>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Buyer
+                  </Button>
+                </SmartAddDialog>
+                <SmartAddDialog type="listing" onSuccess={() => window.location.reload()}>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Listing
+                  </Button>
+                </SmartAddDialog>
+              </div>
+
+              <AIModal initialMessage="Help me manage my active clients and properties. What insights can you provide?">
                 <Button variant="outline" className="w-full justify-start">
                   <Bot className="h-4 w-4 mr-2" />
-                  AI Assistant
+                  AI Client Assistant
                 </Button>
               </AIModal>
             </CardContent>
