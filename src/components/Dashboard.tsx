@@ -82,63 +82,6 @@ export const Dashboard = () => {
         <p className="text-muted-foreground">Here's what's happening with your real estate business today.</p>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* Combined Active Clients Card */}
-        <Card className="shadow-card bg-gradient-card border-border/50 cursor-pointer hover-scale" 
-              onClick={() => setActiveChart('buyers')}>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center justify-between text-foreground">
-              <div className="flex items-center">
-                <Users className="h-5 w-5 mr-2 text-primary" />
-                Active Clients
-              </div>
-              <Badge variant="secondary" className="text-xs">
-                {metrics.activeBuyers + metrics.activeListings}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Buyers</span>
-              </div>
-              <span className="font-semibold text-foreground">{metrics.activeBuyers}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Home className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Listings</span>
-              </div>
-              <span className="font-semibold text-foreground">{metrics.activeListings}</span>
-            </div>
-            <div className="flex items-center justify-center pt-2">
-              <Badge variant="secondary" className="bg-success/10 text-success">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +12% growth
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div onClick={() => setActiveChart('commissions')} className="cursor-pointer">
-          <MetricsCard
-            title="Total Commission"
-            value={`$${metrics.thisYearCommission.toLocaleString()}`}
-            icon={<DollarSign />}
-            trend={{ value: 15, isPositive: true }}
-          />
-        </div>
-        <div onClick={() => setActiveChart('market')} className="cursor-pointer">
-          <MetricsCard
-            title="Avg. Days on Market"
-            value={metrics.avgDaysOnMarket || 'N/A'}
-            icon={<Calendar />}
-            trend={{ value: -5, isPositive: true }}
-          />
-        </div>
-      </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -231,70 +174,29 @@ export const Dashboard = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Active Clients */}
+          {/* Client Overview Tool */}
           <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-foreground">
-                <div className="flex items-center">
-                  <Users className="h-5 w-5 mr-2 text-primary" />
-                  Active Clients
-                </div>
-                <Badge variant="secondary" className="text-xs">
-                  {metrics.activeBuyers + metrics.activeListings}
-                </Badge>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-foreground text-lg">
+                <Users className="h-4 w-4 mr-2 text-primary" />
+                Client Overview
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Active Buyers Summary */}
-              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium text-sm text-foreground">Active Buyers</p>
-                    <p className="text-xs text-muted-foreground">Looking for properties</p>
-                  </div>
-                </div>
-                <Badge variant="secondary" className="text-xs">
-                  {metrics.activeBuyers}
+            <CardContent className="space-y-3 pt-0">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Active Clients</span>
+                <span className="font-semibold text-foreground">{metrics.activeBuyers + metrics.activeListings}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Est. Commission</span>
+                <span className="font-semibold text-success">${metrics.thisYearCommission.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-center pt-2">
+                <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Active pipeline
                 </Badge>
               </div>
-
-              {/* Active Listings Summary */}
-              <div className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                <div className="flex items-center">
-                  <Home className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium text-sm text-foreground">Active Listings</p>
-                    <p className="text-xs text-muted-foreground">On the market</p>
-                  </div>
-                </div>
-                <Badge variant="secondary" className="text-xs">
-                  {metrics.activeListings}
-                </Badge>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-2">
-                <SmartAddDialog type="buyer" onSuccess={() => window.location.reload()}>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Buyer
-                  </Button>
-                </SmartAddDialog>
-                <SmartAddDialog type="listing" onSuccess={() => window.location.reload()}>
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Listing
-                  </Button>
-                </SmartAddDialog>
-              </div>
-
-              <AIModal initialMessage="Help me manage my active clients and properties. What insights can you provide?">
-                <Button variant="outline" className="w-full justify-start">
-                  <Bot className="h-4 w-4 mr-2" />
-                  AI Client Assistant
-                </Button>
-              </AIModal>
             </CardContent>
           </Card>
 
