@@ -83,15 +83,45 @@ export const Dashboard = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div onClick={() => setActiveChart('listings')} className="cursor-pointer">
-          <MetricsCard
-            title="Active Listings"
-            value={metrics.activeListings}
-            icon={<Home />}
-            trend={{ value: 8, isPositive: true }}
-          />
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Combined Active Clients Card */}
+        <Card className="shadow-card bg-gradient-card border-border/50 cursor-pointer hover-scale" 
+              onClick={() => setActiveChart('buyers')}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between text-foreground">
+              <div className="flex items-center">
+                <Users className="h-5 w-5 mr-2 text-primary" />
+                Active Clients
+              </div>
+              <Badge variant="secondary" className="text-xs">
+                {metrics.activeBuyers + metrics.activeListings}
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 pt-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Buyers</span>
+              </div>
+              <span className="font-semibold text-foreground">{metrics.activeBuyers}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Home className="h-4 w-4 mr-2 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Listings</span>
+              </div>
+              <span className="font-semibold text-foreground">{metrics.activeListings}</span>
+            </div>
+            <div className="flex items-center justify-center pt-2">
+              <Badge variant="secondary" className="bg-success/10 text-success">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                +12% growth
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
         <div onClick={() => setActiveChart('commissions')} className="cursor-pointer">
           <MetricsCard
             title="Total Commission"
@@ -106,14 +136,6 @@ export const Dashboard = () => {
             value={metrics.avgDaysOnMarket || 'N/A'}
             icon={<Calendar />}
             trend={{ value: -5, isPositive: true }}
-          />
-        </div>
-        <div onClick={() => setActiveChart('buyers')} className="cursor-pointer">
-          <MetricsCard
-            title="Active Buyers"
-            value={metrics.activeBuyers}
-            icon={<Users />}
-            trend={{ value: 12, isPositive: true }}
           />
         </div>
       </div>
