@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { ListingsChart } from "./charts/ListingsChart"
 import { CommissionChart } from "./charts/CommissionChart"
 import { DaysOnMarketChart } from "./charts/DaysOnMarketChart"
-import { OverdueTasksChart } from "./charts/OverdueTasksChart"
+import { BuyerChart } from "./charts/BuyerChart"
+import { BuyerCard } from "@/components/BuyerCard"
 import { useMockDashboardData as useDashboardData } from "@/hooks/useMockDashboardData"
 import { 
   Home, 
@@ -27,8 +28,8 @@ import {
 import { AIModal } from "@/components/AIModal"
 
 export const Dashboard = () => {
-  const { listings, commissions, tasks, loading, error, metrics } = useDashboardData()
-  const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'tasks' | 'market' | null>(null)
+  const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
+  const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
   const navigate = useNavigate()
 
   if (loading) {
@@ -105,38 +106,43 @@ export const Dashboard = () => {
             trend={{ value: -5, isPositive: true }}
           />
         </div>
-        <div onClick={() => setActiveChart('tasks')} className="cursor-pointer">
+        <div onClick={() => setActiveChart('buyers')} className="cursor-pointer">
           <MetricsCard
-            title="Overdue Tasks"
-            value={metrics.overdueTasks}
-            icon={<AlertTriangle />}
-            variant={metrics.overdueTasks > 0 ? "warning" : "default"}
+            title="Active Buyers"
+            value={metrics.activeBuyers}
+            icon={<Users />}
+            trend={{ value: 12, isPositive: true }}
           />
         </div>
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Listings */}
+        {/* Active Buyers */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-foreground">Active Listings</h3>
+            <h3 className="text-2xl font-bold text-foreground">Active Buyers</h3>
             <div className="flex items-center space-x-3">
-              <AIModal initialMessage="I'd like help managing my active listings. Can you provide insights and suggestions for improving my current active listings performance?">
+              <AIModal initialMessage="I'd like help managing my buyer clients. Can you suggest strategies for finding properties that match their criteria?">
                 <Button variant="outline" className="shadow-elevated">
                   <Bot className="h-4 w-4 mr-2" />
-                  AI Listing Assistant
+                  AI Buyer Assistant
                 </Button>
               </AIModal>
               <Button variant="hero" className="shadow-elevated">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Listing
+                Add Buyer
               </Button>
             </div>
           </div>
-          <div className="space-y-4">
-            {displayListings.map((listing) => (
-              <ListingCard key={listing.id} {...listing} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {buyers.filter(b => b.status === 'active').slice(0, 4).map((buyer) => (
+              <BuyerCard 
+                key={buyer.id} 
+                buyer={buyer}
+                onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
+                onEdit={(buyer) => console.log('Edit buyer:', buyer.name)}
+              />
             ))}
           </div>
         </div>
@@ -173,33 +179,32 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Upcoming Tasks */}
+          {/* Recent Listings */}
           <Card className="shadow-card bg-gradient-card border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center text-foreground">
-                <CheckCircle className="h-5 w-5 mr-2 text-primary" />
-                Upcoming Tasks
+                <Home className="h-5 w-5 mr-2 text-primary" />
+                Recent Listings
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {upcomingTasks.map((task) => (
-                  <div key={task.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
+                {displayListings.map((listing) => (
+                  <div key={listing.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
                     <div className="flex-1">
-                      <p className="font-medium text-sm text-foreground">{task.title}</p>
-                      <p className="text-xs text-muted-foreground">Client: {task.client}</p>
+                      <p className="font-medium text-sm text-foreground truncate">{listing.address}</p>
+                      <p className="text-xs text-muted-foreground">${listing.price.toLocaleString()}</p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge variant={task.overdue ? "destructive" : "secondary"} className="text-xs">
-                        {task.overdue ? <Clock className="h-3 w-3 mr-1" /> : null}
-                        {task.dueDate}
+                      <Badge variant="secondary" className="text-xs">
+                        {listing.daysOnMarket} days
                       </Badge>
                     </div>
                   </div>
                 ))}
               </div>
               <Button variant="ghost" className="w-full mt-4 text-primary hover:bg-primary/10">
-                View All Tasks
+                View All Listings
               </Button>
             </CardContent>
           </Card>
@@ -245,8 +250,8 @@ export const Dashboard = () => {
       {activeChart === 'commissions' && (
         <CommissionChart commissions={commissions} onClose={() => setActiveChart(null)} />
       )}
-      {activeChart === 'tasks' && (
-        <OverdueTasksChart tasks={tasks} onClose={() => setActiveChart(null)} />
+      {activeChart === 'buyers' && (
+        <BuyerChart buyers={buyers} onClose={() => setActiveChart(null)} />
       )}
       {activeChart === 'market' && (
         <DaysOnMarketChart listings={listings} onClose={() => setActiveChart(null)} />

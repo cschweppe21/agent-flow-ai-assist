@@ -97,6 +97,105 @@ export type Database = {
         }
         Relationships: []
       }
+      buyer_showings: {
+        Row: {
+          buyer_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          interest_level: string | null
+          listing_id: string
+          showing_date: string
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          interest_level?: string | null
+          listing_id: string
+          showing_date: string
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          interest_level?: string | null
+          listing_id?: string
+          showing_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "buyer_showings_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "buyers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "buyer_showings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      buyers: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          preferred_areas: string[] | null
+          preferred_bathrooms: number | null
+          preferred_bedrooms: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          preferred_areas?: string[] | null
+          preferred_bathrooms?: number | null
+          preferred_bedrooms?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          preferred_areas?: string[] | null
+          preferred_bathrooms?: number | null
+          preferred_bedrooms?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       commissions: {
         Row: {
           amount: number
