@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ListingsChart } from "./charts/ListingsChart"
 import { CommissionChart } from "./charts/CommissionChart"
-import { TaskChart } from "./charts/TaskChart"
-import { MarketChart } from "./charts/MarketChart"
+import { DaysOnMarketChart } from "./charts/DaysOnMarketChart"
+import { OverdueTasksChart } from "./charts/OverdueTasksChart"
 import { useMockDashboardData as useDashboardData } from "@/hooks/useMockDashboardData"
 import { 
   Home, 
@@ -87,10 +87,6 @@ export const Dashboard = () => {
             value={metrics.activeListings}
             icon={<Home />}
             trend={{ value: 8, isPositive: true }}
-            data={[
-              { value: 8 }, { value: 12 }, { value: 9 }, { value: 15 }, 
-              { value: 18 }, { value: 22 }, { value: metrics.activeListings }
-            ]}
           />
         </div>
         <div onClick={() => setActiveChart('commissions')} className="cursor-pointer">
@@ -99,11 +95,6 @@ export const Dashboard = () => {
             value={`$${metrics.thisYearCommission.toLocaleString()}`}
             icon={<DollarSign />}
             trend={{ value: 15, isPositive: true }}
-            variant="success"
-            data={[
-              { value: 45000 }, { value: 52000 }, { value: 48000 }, { value: 61000 }, 
-              { value: 67000 }, { value: 74000 }, { value: metrics.thisYearCommission }
-            ]}
           />
         </div>
         <div onClick={() => setActiveChart('market')} className="cursor-pointer">
@@ -112,22 +103,14 @@ export const Dashboard = () => {
             value={metrics.avgDaysOnMarket || 'N/A'}
             icon={<Calendar />}
             trend={{ value: -5, isPositive: true }}
-            data={[
-              { value: 45 }, { value: 42 }, { value: 38 }, { value: 35 }, 
-              { value: 33 }, { value: 30 }, { value: metrics.avgDaysOnMarket || 28 }
-            ]}
           />
         </div>
-        <div onClick={() => navigate('/tasks')} className="cursor-pointer">
+        <div onClick={() => setActiveChart('tasks')} className="cursor-pointer">
           <MetricsCard
             title="Overdue Tasks"
             value={metrics.overdueTasks}
             icon={<AlertTriangle />}
             variant={metrics.overdueTasks > 0 ? "warning" : "default"}
-            data={[
-              { value: 5 }, { value: 3 }, { value: 7 }, { value: 4 }, 
-              { value: 2 }, { value: 1 }, { value: metrics.overdueTasks }
-            ]}
           />
         </div>
       </div>
@@ -263,10 +246,10 @@ export const Dashboard = () => {
         <CommissionChart commissions={commissions} onClose={() => setActiveChart(null)} />
       )}
       {activeChart === 'tasks' && (
-        <TaskChart tasks={tasks} onClose={() => setActiveChart(null)} />
+        <OverdueTasksChart tasks={tasks} onClose={() => setActiveChart(null)} />
       )}
       {activeChart === 'market' && (
-        <MarketChart listings={listings} onClose={() => setActiveChart(null)} />
+        <DaysOnMarketChart listings={listings} onClose={() => setActiveChart(null)} />
       )}
     </div>
   )
