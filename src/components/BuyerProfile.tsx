@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
@@ -20,9 +21,24 @@ import {
   Save,
   MessageSquare,
   Calendar,
-  Target
+  Target,
+  TrendingUp,
+  Building
 } from "lucide-react"
 import { Buyer } from "./BuyerCard"
+
+// Mock property data interface
+interface Property {
+  id: string
+  address: string
+  price: number
+  bedrooms: number
+  bathrooms: number
+  sqft: number
+  area: string
+  listingDate: string
+  images?: string[]
+}
 
 interface BuyerProfileProps {
   buyer: Buyer
@@ -35,7 +51,83 @@ interface BuyerProfileProps {
 export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: BuyerProfileProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<Buyer>(buyer)
+  const [activeTab, setActiveTab] = useState("profile")
   const { toast } = useToast()
+
+  // Generate recommended properties based on buyer preferences
+  const recommendedProperties = useMemo(() => {
+    const mockProperties: Property[] = [
+      {
+        id: "1",
+        address: "456 Ocean View Dr, Santa Monica, CA",
+        price: 1150000,
+        bedrooms: 3,
+        bathrooms: 2.5,
+        sqft: 1850,
+        area: "Santa Monica",
+        listingDate: "2024-01-15"
+      },
+      {
+        id: "2", 
+        address: "789 Beverly Hills Blvd, Beverly Hills, CA",
+        price: 2200000,
+        bedrooms: 4,
+        bathrooms: 3,
+        sqft: 2400,
+        area: "Beverly Hills",
+        listingDate: "2024-01-10"
+      },
+      {
+        id: "3",
+        address: "321 Venice Beach Way, Venice, CA", 
+        price: 980000,
+        bedrooms: 2,
+        bathrooms: 2,
+        sqft: 1400,
+        area: "Venice",
+        listingDate: "2024-01-20"
+      },
+      {
+        id: "4",
+        address: "654 Malibu Coast Hwy, Malibu, CA",
+        price: 3500000,
+        bedrooms: 5,
+        bathrooms: 4.5,
+        sqft: 3200,
+        area: "Malibu",
+        listingDate: "2024-01-08"
+      },
+      {
+        id: "5",
+        address: "147 Manhattan Beach Blvd, Manhattan Beach, CA",
+        price: 1650000,
+        bedrooms: 3,
+        bathrooms: 2.5,
+        sqft: 2000,
+        area: "Manhattan Beach",
+        listingDate: "2024-01-18"
+      }
+    ]
+
+    return mockProperties.filter(property => {
+      // Filter by preferred areas
+      const matchesArea = formData.preferred_areas?.some(area => 
+        property.area.toLowerCase().includes(area.toLowerCase())
+      ) || false
+
+      // Filter by budget
+      const withinBudget = (!formData.budget_min || property.price >= formData.budget_min) &&
+                          (!formData.budget_max || property.price <= formData.budget_max)
+
+      // Filter by bedrooms
+      const matchesBedrooms = !formData.preferred_bedrooms || property.bedrooms >= formData.preferred_bedrooms
+
+      // Filter by bathrooms  
+      const matchesBathrooms = !formData.preferred_bathrooms || property.bathrooms >= formData.preferred_bathrooms
+
+      return matchesArea && withinBudget && matchesBedrooms && matchesBathrooms
+    }).slice(0, 8) // Limit to 8 recommendations
+  }, [formData])
 
   const handleSave = () => {
     onSave?.(formData)
@@ -44,6 +136,7 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
       title: "Profile Updated",
       description: "Buyer profile has been successfully updated.",
     })
+    // Don't close the modal - keep it open
   }
 
   const handleCancel = () => {
@@ -103,9 +196,22 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[70vh] pr-2">
-          {/* Main Profile Information */}
-          <div className="lg:col-span-2 space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="profile">Profile Details</TabsTrigger>
+            <TabsTrigger value="recommendations">
+              Property Recommendations
+              {recommendedProperties.length > 0 && (
+                <span className="ml-2 bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs">
+                  {recommendedProperties.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="profile" className="grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-y-auto max-h-[60vh] pr-2">
+            {/* Main Profile Information */}
+            <div className="lg:col-span-2 space-y-6">
             <Card className="shadow-card bg-gradient-card border-border/50">
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -360,10 +466,6 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
                   Contact Buyer
                 </Button>
                 <Button variant="outline" className="w-full justify-start">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Send Message
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
                   <Calendar className="h-4 w-4 mr-2" />
                   Schedule Showing
                 </Button>
@@ -443,7 +545,144 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
               </CardContent>
             </Card>
           </div>
-        </div>
+        </TabsContent>
+
+        <TabsContent value="recommendations" className="overflow-y-auto max-h-[60vh] pr-2">
+          <div className="space-y-6">
+            {/* Recommendations Header */}
+            <Card className="shadow-card bg-gradient-card border-border/50">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Building className="h-5 w-5 mr-2 text-primary" />
+                    Property Recommendations
+                  </div>
+                  <Badge variant="secondary">
+                    {recommendedProperties.length} matches
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Budget Range:</span>
+                    <span className="font-medium">{formatBudget()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preferred Areas:</span>
+                    <span className="font-medium">
+                      {formData.preferred_areas?.slice(0, 2).join(', ') || 'Any'}
+                      {formData.preferred_areas && formData.preferred_areas.length > 2 && ` +${formData.preferred_areas.length - 2} more`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Min Bedrooms:</span>
+                    <span className="font-medium">{formData.preferred_bedrooms || 'Any'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Min Bathrooms:</span>
+                    <span className="font-medium">{formData.preferred_bathrooms || 'Any'}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Property Listings */}
+            {recommendedProperties.length > 0 ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {recommendedProperties.map((property) => (
+                  <Card key={property.id} className="shadow-card bg-gradient-card border-border/50 hover:shadow-elevated transition-shadow cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg text-foreground line-clamp-1">
+                            {property.address}
+                          </CardTitle>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {property.area}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              Listed {new Date(property.listingDate).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="text-2xl font-bold text-success">
+                        ${property.price.toLocaleString()}
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-3 text-sm">
+                        <div className="flex items-center space-x-1">
+                          <Home className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{property.bedrooms}</span>
+                          <span className="text-muted-foreground">bed</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Home className="h-4 w-4 text-muted-foreground" />
+                          <span className="font-medium">{property.bathrooms}</span>
+                          <span className="text-muted-foreground">bath</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="font-medium">{property.sqft.toLocaleString()}</span>
+                          <span className="text-muted-foreground">sqft</span>
+                        </div>
+                      </div>
+
+                      {/* Match indicators */}
+                      <div className="flex flex-wrap gap-1 pt-2">
+                        {property.price >= (formData.budget_min || 0) && 
+                         property.price <= (formData.budget_max || Infinity) && (
+                          <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                            <TrendingUp className="h-3 w-3 mr-1" />
+                            In Budget
+                          </Badge>
+                        )}
+                        {formData.preferred_bedrooms && property.bedrooms >= formData.preferred_bedrooms && (
+                          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                            ✓ Bedrooms
+                          </Badge>
+                        )}
+                        {formData.preferred_bathrooms && property.bathrooms >= formData.preferred_bathrooms && (
+                          <Badge variant="secondary" className="bg-primary/10 text-primary text-xs">
+                            ✓ Bathrooms
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="flex space-x-2 pt-2">
+                        <Button size="sm" className="flex-1">
+                          View Details
+                        </Button>
+                        <Button size="sm" variant="outline" className="flex-1">
+                          Schedule Tour
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="shadow-card bg-gradient-card border-border/50">
+                <CardContent className="text-center py-8">
+                  <Building className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Matching Properties</h3>
+                  <p className="text-muted-foreground mb-4">
+                    We couldn't find any properties matching the current criteria.
+                  </p>
+                  <div className="text-sm text-muted-foreground">
+                    <p>• Try expanding the budget range</p>
+                    <p>• Consider additional areas</p>
+                    <p>• Adjust bedroom/bathroom requirements</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
       </DialogContent>
     </Dialog>
   )

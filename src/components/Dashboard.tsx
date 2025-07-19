@@ -300,7 +300,7 @@ export const Dashboard = () => {
           onClose={() => setSelectedBuyer(null)}
           onSave={(updatedBuyer) => {
             console.log('Save buyer:', updatedBuyer)
-            setSelectedBuyer(null)
+            // Don't close the profile - let user stay on it
           }}
           onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
         />
