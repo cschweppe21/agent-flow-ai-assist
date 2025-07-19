@@ -30,6 +30,7 @@ import { AIModal } from "@/components/AIModal"
 export const Dashboard = () => {
   const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
+  const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
   const navigate = useNavigate()
 
   if (loading) {
@@ -118,33 +119,87 @@ export const Dashboard = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Active Buyers */}
+        {/* Active Buyers / Listings Toggle Section */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-foreground">Active Buyers</h3>
-            <div className="flex items-center space-x-3">
-              <AIModal initialMessage="I'd like help managing my buyer clients. Can you suggest strategies for finding properties that match their criteria?">
-                <Button variant="outline" className="shadow-elevated">
-                  <Bot className="h-4 w-4 mr-2" />
-                  AI Buyer Assistant
+            <div className="flex items-center space-x-4">
+              <h3 className="text-2xl font-bold text-foreground">
+                {mainView === 'buyers' ? 'Active Buyers' : 'Active Listings'}
+              </h3>
+              
+              {/* Toggle Switch */}
+              <div className="flex items-center bg-muted rounded-lg p-1">
+                <Button
+                  variant={mainView === 'buyers' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setMainView('buyers')}
+                  className="text-xs"
+                >
+                  <Users className="h-4 w-4 mr-1" />
+                  Buyers
                 </Button>
-              </AIModal>
-              <Button variant="hero" className="shadow-elevated">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Buyer
-              </Button>
+                <Button
+                  variant={mainView === 'listings' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setMainView('listings')}
+                  className="text-xs"
+                >
+                  <Home className="h-4 w-4 mr-1" />
+                  Listings
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3">
+              {mainView === 'buyers' ? (
+                <>
+                  <AIModal initialMessage="I'd like help managing my buyer clients. Can you suggest strategies for finding properties that match their criteria?">
+                    <Button variant="outline" className="shadow-elevated">
+                      <Bot className="h-4 w-4 mr-2" />
+                      AI Buyer Assistant
+                    </Button>
+                  </AIModal>
+                  <Button variant="hero" className="shadow-elevated">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Buyer
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <AIModal initialMessage="I'd like help managing my active listings. Can you provide insights and suggestions for improving my current active listings performance?">
+                    <Button variant="outline" className="shadow-elevated">
+                      <Bot className="h-4 w-4 mr-2" />
+                      AI Listing Assistant
+                    </Button>
+                  </AIModal>
+                  <Button variant="hero" className="shadow-elevated">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Listing
+                  </Button>
+                </>
+              )}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {buyers.filter(b => b.status === 'active').slice(0, 4).map((buyer) => (
-              <BuyerCard 
-                key={buyer.id} 
-                buyer={buyer}
-                onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
-                onEdit={(buyer) => console.log('Edit buyer:', buyer.name)}
-              />
-            ))}
-          </div>
+          
+          {/* Content based on toggle */}
+          {mainView === 'buyers' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {buyers.filter(b => b.status === 'active').slice(0, 4).map((buyer) => (
+                <BuyerCard 
+                  key={buyer.id} 
+                  buyer={buyer}
+                  onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
+                  onEdit={(buyer) => console.log('Edit buyer:', buyer.name)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {displayListings.map((listing) => (
+                <ListingCard key={listing.id} {...listing} />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
