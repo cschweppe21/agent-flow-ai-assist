@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Commission } from '@/hooks/useDashboardData';
 
 interface CommissionChartProps {
@@ -9,6 +10,7 @@ interface CommissionChartProps {
 }
 
 export const CommissionChart = ({ commissions, onClose }: CommissionChartProps) => {
+  const [activeView, setActiveView] = useState<'monthly' | 'yearly' | 'types'>('monthly');
   const currentYear = new Date().getFullYear();
   
   // Monthly commission data for current year
@@ -44,6 +46,49 @@ export const CommissionChart = ({ commissions, onClose }: CommissionChartProps) 
     { type: 'Other', amount: commissions.filter(c => c.commission_type === 'other').reduce((sum, c) => sum + c.amount, 0) }
   ].filter(item => item.amount > 0);
 
+  const renderChart = () => {
+    switch (activeView) {
+      case 'monthly':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
+              <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      case 'yearly':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={yearlyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="year" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
+              <Bar dataKey="amount" fill="hsl(var(--success))" />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'types':
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={typeData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="type" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
+              <Bar dataKey="amount" fill="hsl(var(--warning))" />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-4xl h-[600px] bg-card border-border shadow-elevated">
@@ -57,51 +102,32 @@ export const CommissionChart = ({ commissions, onClose }: CommissionChartProps) 
               ✕
             </button>
           </div>
+          <div className="flex space-x-2 mt-4">
+            <Button
+              variant={activeView === 'monthly' ? 'default' : 'outline'}
+              onClick={() => setActiveView('monthly')}
+              size="sm"
+            >
+              Monthly ({currentYear})
+            </Button>
+            <Button
+              variant={activeView === 'yearly' ? 'default' : 'outline'}
+              onClick={() => setActiveView('yearly')}
+              size="sm"
+            >
+              Yearly
+            </Button>
+            <Button
+              variant={activeView === 'types' ? 'default' : 'outline'}
+              onClick={() => setActiveView('types')}
+              size="sm"
+            >
+              By Type
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent className="h-full">
-          <Tabs defaultValue="monthly" className="h-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="monthly">Monthly ({currentYear})</TabsTrigger>
-              <TabsTrigger value="yearly">Yearly</TabsTrigger>
-              <TabsTrigger value="types">By Type</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="monthly" className="h-[450px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
-                  <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </TabsContent>
-            
-            <TabsContent value="yearly" className="h-[450px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
-                  <Bar dataKey="amount" fill="hsl(var(--success))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </TabsContent>
-            
-            <TabsContent value="types" className="h-[450px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={typeData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="type" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
-                  <Bar dataKey="amount" fill="hsl(var(--warning))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </TabsContent>
-          </Tabs>
+        <CardContent className="h-[450px]">
+          {renderChart()}
         </CardContent>
       </Card>
     </div>
