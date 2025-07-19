@@ -287,8 +287,7 @@ export const CommissionDashboard = ({
                     <BuyerCard 
                       key={buyer.id} 
                       buyer={buyer}
-                      onContact={() => {}}
-                      onEdit={() => {}}
+                      onViewProfile={() => {}}
                     />
                   ))}
                   {activeBuyerClients.length > 6 && (

@@ -21,11 +21,10 @@ export interface Buyer {
 
 interface BuyerCardProps {
   buyer: Buyer;
-  onContact?: (buyer: Buyer) => void;
-  onEdit?: (buyer: Buyer) => void;
+  onViewProfile?: (buyer: Buyer) => void;
 }
 
-export const BuyerCard = ({ buyer, onContact, onEdit }: BuyerCardProps) => {
+export const BuyerCard = ({ buyer, onViewProfile }: BuyerCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -139,21 +138,14 @@ export const BuyerCard = ({ buyer, onContact, onEdit }: BuyerCardProps) => {
         )}
 
         {/* Actions */}
-        <div className="flex space-x-2 pt-2">
+        <div className="pt-2">
           <Button
             size="sm"
-            onClick={() => onContact?.(buyer)}
-            className="flex-1"
+            onClick={() => onViewProfile?.(buyer)}
+            className="w-full"
           >
-            Contact
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onEdit?.(buyer)}
-            className="flex-1"
-          >
-            Edit
+            <User className="h-4 w-4 mr-2" />
+            View Profile
           </Button>
         </div>
       </CardContent>

@@ -28,12 +28,14 @@ import {
   Phone
 } from "lucide-react"
 import { AIModal } from "@/components/AIModal"
+import { BuyerProfile } from "@/components/BuyerProfile"
 
 export const Dashboard = () => {
   const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
   const [showCommissionDashboard, setShowCommissionDashboard] = useState(false)
+  const [selectedBuyer, setSelectedBuyer] = useState<any>(null)
   const navigate = useNavigate()
 
   if (loading) {
@@ -160,8 +162,7 @@ export const Dashboard = () => {
                 <BuyerCard 
                   key={buyer.id} 
                   buyer={buyer}
-                  onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
-                  onEdit={(buyer) => console.log('Edit buyer:', buyer.name)}
+                  onViewProfile={(buyer) => setSelectedBuyer(buyer)}
                 />
               ))}
             </div>
@@ -290,6 +291,20 @@ export const Dashboard = () => {
         buyers={buyers}
         metrics={metrics}
       />
+
+      {/* Buyer Profile */}
+      {selectedBuyer && (
+        <BuyerProfile
+          buyer={selectedBuyer}
+          isOpen={!!selectedBuyer}
+          onClose={() => setSelectedBuyer(null)}
+          onSave={(updatedBuyer) => {
+            console.log('Save buyer:', updatedBuyer)
+            setSelectedBuyer(null)
+          }}
+          onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
+        />
+      )}
     </div>
   )
 }
