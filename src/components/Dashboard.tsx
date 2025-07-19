@@ -10,6 +10,7 @@ import { CommissionChart } from "./charts/CommissionChart"
 import { DaysOnMarketChart } from "./charts/DaysOnMarketChart"
 import { BuyerChart } from "./charts/BuyerChart"
 import { BuyerCard } from "@/components/BuyerCard"
+import { SmartAddDialog } from "@/components/SmartAddDialog"
 import { useMockDashboardData as useDashboardData } from "@/hooks/useMockDashboardData"
 import { 
   Home, 
@@ -159,10 +160,12 @@ export const Dashboard = () => {
                       AI Buyer Assistant
                     </Button>
                   </AIModal>
-                  <Button variant="hero" className="shadow-elevated">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Buyer
-                  </Button>
+                  <SmartAddDialog type="buyer" onSuccess={() => window.location.reload()}>
+                    <Button variant="hero" className="shadow-elevated">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Buyer
+                    </Button>
+                  </SmartAddDialog>
                 </>
               ) : (
                 <>
@@ -172,10 +175,12 @@ export const Dashboard = () => {
                       AI Listing Assistant
                     </Button>
                   </AIModal>
-                  <Button variant="hero" className="shadow-elevated">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Listing
-                  </Button>
+                  <SmartAddDialog type="listing" onSuccess={() => window.location.reload()}>
+                    <Button variant="hero" className="shadow-elevated">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Listing
+                    </Button>
+                  </SmartAddDialog>
                 </>
               )}
             </div>
