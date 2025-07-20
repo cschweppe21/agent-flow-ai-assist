@@ -42,6 +42,7 @@ interface MarketReportProps {
 
 export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
   const [activeTab, setActiveTab] = useState("overview")
+  const [dataScope, setDataScope] = useState<'regional' | 'national'>('regional')
 
   // Mock data for charts
   const priceHistoryData = [
@@ -69,21 +70,78 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
     { name: 'Multi-Family', value: 2, color: 'hsl(var(--muted))' }
   ]
 
-  const economicIndicators = [
+  const economicIndicators = dataScope === 'regional' ? [
     { metric: 'Interest Rates', current: '6.8%', change: '+0.2%', trend: 'up' },
     { metric: 'Unemployment', current: '3.2%', change: '-0.1%', trend: 'down' },
     { metric: 'Population Growth', current: '2.1%', change: '+0.3%', trend: 'up' },
     { metric: 'New Construction', current: '1,240', change: '+15%', trend: 'up' }
+  ] : [
+    { metric: 'Interest Rates', current: '6.9%', change: '+0.3%', trend: 'up' },
+    { metric: 'Unemployment', current: '3.7%', change: '+0.1%', trend: 'up' },
+    { metric: 'Population Growth', current: '0.8%', change: '+0.1%', trend: 'up' },
+    { metric: 'New Construction', current: '1.4M', change: '+8%', trend: 'up' }
   ]
+
+  const marketData = dataScope === 'regional' ? {
+    medianPrice: '$1.28M',
+    priceChange: '+5.2%',
+    daysOnMarket: '28',
+    marketChange: '-12%',
+    activeListings: '470',
+    listingsChange: '-8%',
+    salesVolume: '410',
+    salesChange: '+18%',
+    interestRate: '6.8%',
+    rateChange: '+0.2%',
+    pricePerSqFt: '$850',
+    sqftChange: '+3.1%',
+    inventory: '2.2',
+    inventoryTrend: 'Seller\'s Market'
+  } : {
+    medianPrice: '$420K',
+    priceChange: '+3.8%',
+    daysOnMarket: '35',
+    marketChange: '-8%',
+    activeListings: '1.2M',
+    listingsChange: '-5%',
+    salesVolume: '5.8M',
+    salesChange: '+12%',
+    interestRate: '6.9%',
+    rateChange: '+0.3%',
+    pricePerSqFt: '$185',
+    sqftChange: '+2.9%',
+    inventory: '3.1',
+    inventoryTrend: 'Balanced Market'
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-2xl">
-            <BarChart3 className="h-6 w-6 mr-2 text-primary" />
-            Market Analysis Report
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center text-2xl">
+              <BarChart3 className="h-6 w-6 mr-2 text-primary" />
+              Market Analysis Report
+            </DialogTitle>
+            <div className="flex items-center bg-muted rounded-lg p-1">
+              <Button
+                variant={dataScope === 'regional' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setDataScope('regional')}
+                className="text-xs"
+              >
+                Regional
+              </Button>
+              <Button
+                variant={dataScope === 'national' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setDataScope('national')}
+                className="text-xs"
+              >
+                National
+              </Button>
+            </div>
+          </div>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -101,10 +159,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Median Price</p>
-                      <p className="text-2xl font-bold">$1.28M</p>
+                      <p className="text-2xl font-bold">{marketData.medianPrice}</p>
                       <Badge variant="secondary" className="bg-success/10 text-success mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        +5.2%
+                        {marketData.priceChange}
                       </Badge>
                     </div>
                     <Home className="h-8 w-8 text-primary" />
@@ -117,10 +175,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Days on Market</p>
-                      <p className="text-2xl font-bold">28</p>
+                      <p className="text-2xl font-bold">{marketData.daysOnMarket}</p>
                       <Badge variant="secondary" className="bg-destructive/10 text-destructive mt-1">
                         <TrendingDown className="h-3 w-3 mr-1" />
-                        -12%
+                        {marketData.marketChange}
                       </Badge>
                     </div>
                     <Calendar className="h-8 w-8 text-primary" />
@@ -133,10 +191,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Active Listings</p>
-                      <p className="text-2xl font-bold">470</p>
+                      <p className="text-2xl font-bold">{marketData.activeListings}</p>
                       <Badge variant="secondary" className="bg-warning/10 text-warning mt-1">
                         <TrendingDown className="h-3 w-3 mr-1" />
-                        -8%
+                        {marketData.listingsChange}
                       </Badge>
                     </div>
                     <Building className="h-8 w-8 text-primary" />
@@ -149,10 +207,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Sales Volume</p>
-                      <p className="text-2xl font-bold">410</p>
+                      <p className="text-2xl font-bold">{marketData.salesVolume}</p>
                       <Badge variant="secondary" className="bg-success/10 text-success mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        +18%
+                        {marketData.salesChange}
                       </Badge>
                     </div>
                     <Activity className="h-8 w-8 text-primary" />
@@ -161,35 +219,7 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
               </Card>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="shadow-card bg-gradient-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <PieChart className="h-5 w-5 mr-2 text-primary" />
-                    Property Type Distribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RechartsPieChart>
-                      <Pie
-                        dataKey="value"
-                        data={marketShareData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                        {marketShareData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
+            <div className="grid grid-cols-1 gap-6">
               <Card className="shadow-card bg-gradient-card">
                 <CardHeader>
                   <CardTitle className="flex items-center">
@@ -335,21 +365,21 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                     <div className="p-4 bg-background/50 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-muted-foreground">30-Year Fixed</span>
-                        <span className="text-2xl font-bold">6.8%</span>
+                        <span className="text-2xl font-bold">{dataScope === 'regional' ? '6.8%' : '6.9%'}</span>
                       </div>
                       <Badge variant="secondary" className="bg-warning/10 text-warning">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        +0.2% from last month
+                        {dataScope === 'regional' ? '+0.2%' : '+0.3%'} from last month
                       </Badge>
                     </div>
                     <div className="p-4 bg-background/50 rounded-lg">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm text-muted-foreground">15-Year Fixed</span>
-                        <span className="text-2xl font-bold">6.1%</span>
+                        <span className="text-2xl font-bold">{dataScope === 'regional' ? '6.1%' : '6.2%'}</span>
                       </div>
                       <Badge variant="secondary" className="bg-warning/10 text-warning">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        +0.1% from last month
+                        {dataScope === 'regional' ? '+0.1%' : '+0.2%'} from last month
                       </Badge>
                     </div>
                   </div>
@@ -368,30 +398,30 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Population Growth</span>
                       <div className="text-right">
-                        <span className="font-semibold">2.1%</span>
+                        <span className="font-semibold">{dataScope === 'regional' ? '2.1%' : '0.8%'}</span>
                         <Badge variant="secondary" className="bg-success/10 text-success ml-2">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          Strong
+                          {dataScope === 'regional' ? 'Strong' : 'Moderate'}
                         </Badge>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Job Growth</span>
                       <div className="text-right">
-                        <span className="font-semibold">3.4%</span>
+                        <span className="font-semibold">{dataScope === 'regional' ? '3.4%' : '2.1%'}</span>
                         <Badge variant="secondary" className="bg-success/10 text-success ml-2">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          Excellent
+                          {dataScope === 'regional' ? 'Excellent' : 'Good'}
                         </Badge>
                       </div>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Median Income</span>
                       <div className="text-right">
-                        <span className="font-semibold">$89,500</span>
+                        <span className="font-semibold">{dataScope === 'regional' ? '$89,500' : '$70,200'}</span>
                         <Badge variant="secondary" className="bg-success/10 text-success ml-2">
                           <TrendingUp className="h-3 w-3 mr-1" />
-                          +4.2%
+                          {dataScope === 'regional' ? '+4.2%' : '+3.1%'}
                         </Badge>
                       </div>
                     </div>
