@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +16,9 @@ import {
   Activity,
   Target,
   Users,
-  Building
+  Building,
+  MapPin,
+  ChevronDown
 } from "lucide-react"
 import { 
   LineChart, 
@@ -43,7 +46,150 @@ interface MarketReportProps {
 export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
   const [activeTab, setActiveTab] = useState("overview")
   const [dataScope, setDataScope] = useState<'regional' | 'national'>('regional')
+  const [selectedLocation, setSelectedLocation] = useState('san-francisco')
   const [priceTimeframe, setPriceTimeframe] = useState<'1m' | '6m' | '1y' | '5y' | '10y'>('6m')
+
+  const locations = [
+    { id: 'san-francisco', name: 'San Francisco Bay Area', state: 'CA' },
+    { id: 'new-york', name: 'New York City', state: 'NY' },
+    { id: 'los-angeles', name: 'Los Angeles', state: 'CA' },
+    { id: 'miami', name: 'Miami', state: 'FL' },
+    { id: 'seattle', name: 'Seattle', state: 'WA' },
+    { id: 'austin', name: 'Austin', state: 'TX' },
+    { id: 'denver', name: 'Denver', state: 'CO' },
+    { id: 'boston', name: 'Boston', state: 'MA' }
+  ]
+
+  const locationData = {
+    'san-francisco': {
+      medianPrice: '$1.28M',
+      priceChange: '+5.2%',
+      daysOnMarket: '28',
+      marketChange: '-12%',
+      activeListings: '470',
+      listingsChange: '-8%',
+      salesVolume: '410',
+      salesChange: '+18%',
+      interestRate: '6.8%',
+      rateChange: '+0.2%',
+      pricePerSqFt: '$850',
+      sqftChange: '+3.1%',
+      inventory: '2.2',
+      inventoryTrend: 'Seller\'s Market'
+    },
+    'new-york': {
+      medianPrice: '$720K',
+      priceChange: '+2.8%',
+      daysOnMarket: '45',
+      marketChange: '-5%',
+      activeListings: '2,150',
+      listingsChange: '-12%',
+      salesVolume: '1,890',
+      salesChange: '+8%',
+      interestRate: '6.9%',
+      rateChange: '+0.3%',
+      pricePerSqFt: '$680',
+      sqftChange: '+2.9%',
+      inventory: '3.1',
+      inventoryTrend: 'Balanced Market'
+    },
+    'los-angeles': {
+      medianPrice: '$950K',
+      priceChange: '+4.1%',
+      daysOnMarket: '32',
+      marketChange: '-8%',
+      activeListings: '890',
+      listingsChange: '-6%',
+      salesVolume: '760',
+      salesChange: '+15%',
+      interestRate: '6.8%',
+      rateChange: '+0.2%',
+      pricePerSqFt: '$720',
+      sqftChange: '+3.8%',
+      inventory: '2.5',
+      inventoryTrend: 'Seller\'s Market'
+    },
+    'miami': {
+      medianPrice: '$580K',
+      priceChange: '+7.2%',
+      daysOnMarket: '25',
+      marketChange: '-18%',
+      activeListings: '320',
+      listingsChange: '-15%',
+      salesVolume: '285',
+      salesChange: '+22%',
+      interestRate: '6.7%',
+      rateChange: '+0.1%',
+      pricePerSqFt: '$420',
+      sqftChange: '+6.1%',
+      inventory: '1.8',
+      inventoryTrend: 'Hot Market'
+    },
+    'seattle': {
+      medianPrice: '$820K',
+      priceChange: '+3.5%',
+      daysOnMarket: '35',
+      marketChange: '-10%',
+      activeListings: '650',
+      listingsChange: '-4%',
+      salesVolume: '520',
+      salesChange: '+12%',
+      interestRate: '6.8%',
+      rateChange: '+0.2%',
+      pricePerSqFt: '$580',
+      sqftChange: '+2.7%',
+      inventory: '2.8',
+      inventoryTrend: 'Balanced Market'
+    },
+    'austin': {
+      medianPrice: '$485K',
+      priceChange: '+6.8%',
+      daysOnMarket: '22',
+      marketChange: '-20%',
+      activeListings: '280',
+      listingsChange: '-18%',
+      salesVolume: '245',
+      salesChange: '+28%',
+      interestRate: '6.7%',
+      rateChange: '+0.1%',
+      pricePerSqFt: '$320',
+      sqftChange: '+5.9%',
+      inventory: '1.5',
+      inventoryTrend: 'Hot Market'
+    },
+    'denver': {
+      medianPrice: '$520K',
+      priceChange: '+4.9%',
+      daysOnMarket: '30',
+      marketChange: '-15%',
+      activeListings: '420',
+      listingsChange: '-10%',
+      salesVolume: '350',
+      salesChange: '+18%',
+      interestRate: '6.8%',
+      rateChange: '+0.2%',
+      pricePerSqFt: '$380',
+      sqftChange: '+4.2%',
+      inventory: '2.1',
+      inventoryTrend: 'Seller\'s Market'
+    },
+    'boston': {
+      medianPrice: '$680K',
+      priceChange: '+3.2%',
+      daysOnMarket: '38',
+      marketChange: '-7%',
+      activeListings: '580',
+      listingsChange: '-9%',
+      salesVolume: '480',
+      salesChange: '+11%',
+      interestRate: '6.9%',
+      rateChange: '+0.3%',
+      pricePerSqFt: '$520',
+      sqftChange: '+2.8%',
+      inventory: '2.9',
+      inventoryTrend: 'Balanced Market'
+    }
+  }
 
   // Mock data for different timeframes
   const priceData = {
@@ -194,22 +340,7 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
     { metric: 'New Construction', current: '1.4M', change: '+8%', trend: 'up' }
   ]
 
-  const marketData = dataScope === 'regional' ? {
-    medianPrice: '$1.28M',
-    priceChange: '+5.2%',
-    daysOnMarket: '28',
-    marketChange: '-12%',
-    activeListings: '470',
-    listingsChange: '-8%',
-    salesVolume: '410',
-    salesChange: '+18%',
-    interestRate: '6.8%',
-    rateChange: '+0.2%',
-    pricePerSqFt: '$850',
-    sqftChange: '+3.1%',
-    inventory: '2.2',
-    inventoryTrend: 'Seller\'s Market'
-  } : {
+  const marketData = dataScope === 'regional' ? locationData[selectedLocation] : {
     medianPrice: '$420K',
     priceChange: '+3.8%',
     daysOnMarket: '35',
@@ -235,23 +366,48 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
               <BarChart3 className="h-6 w-6 mr-2 text-primary" />
               Market Analysis Report
             </DialogTitle>
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <Button
-                variant={dataScope === 'regional' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setDataScope('regional')}
-                className="text-xs"
-              >
-                Regional
-              </Button>
-              <Button
-                variant={dataScope === 'national' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setDataScope('national')}
-                className="text-xs"
-              >
-                National
-              </Button>
+            <div className="flex items-center space-x-2">
+              {dataScope === 'regional' && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex items-center space-x-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{locations.find(loc => loc.id === selectedLocation)?.name}</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56 bg-background border border-border shadow-elevated z-50">
+                    {locations.map((location) => (
+                      <DropdownMenuItem 
+                        key={location.id}
+                        onClick={() => setSelectedLocation(location.id)}
+                        className="flex items-center justify-between cursor-pointer hover:bg-muted"
+                      >
+                        <span>{location.name}</span>
+                        <span className="text-muted-foreground text-xs">{location.state}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              <div className="flex items-center bg-muted rounded-lg p-1">
+                <Button
+                  variant={dataScope === 'regional' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setDataScope('regional')}
+                  className="text-xs"
+                >
+                  Regional
+                </Button>
+                <Button
+                  variant={dataScope === 'national' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setDataScope('national')}
+                  className="text-xs"
+                >
+                  National
+                </Button>
+              </div>
             </div>
           </div>
         </DialogHeader>
