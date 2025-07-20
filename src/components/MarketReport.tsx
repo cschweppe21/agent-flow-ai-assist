@@ -43,16 +43,128 @@ interface MarketReportProps {
 export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
   const [activeTab, setActiveTab] = useState("overview")
   const [dataScope, setDataScope] = useState<'regional' | 'national'>('regional')
+  const [priceTimeframe, setPriceTimeframe] = useState<'1m' | '6m' | '1y' | '5y' | '10y'>('6m')
 
-  // Mock data for charts
-  const priceHistoryData = [
-    { month: 'Jan', medianPrice: 1150000, avgPrice: 1240000 },
-    { month: 'Feb', medianPrice: 1180000, avgPrice: 1270000 },
-    { month: 'Mar', medianPrice: 1200000, avgPrice: 1290000 },
-    { month: 'Apr', medianPrice: 1220000, avgPrice: 1310000 },
-    { month: 'May', medianPrice: 1250000, avgPrice: 1340000 },
-    { month: 'Jun', medianPrice: 1280000, avgPrice: 1370000 }
-  ]
+  // Mock data for different timeframes
+  const priceData = {
+    '1m': {
+      data: [
+        { period: 'Week 1', avgPrice: 1340000 },
+        { period: 'Week 2', avgPrice: 1350000 },
+        { period: 'Week 3', avgPrice: 1360000 },
+        { period: 'Week 4', avgPrice: 1370000 }
+      ],
+      change: '+2.2%'
+    },
+    '6m': {
+      data: [
+        { period: 'Jan', avgPrice: 1240000 },
+        { period: 'Feb', avgPrice: 1270000 },
+        { period: 'Mar', avgPrice: 1290000 },
+        { period: 'Apr', avgPrice: 1310000 },
+        { period: 'May', avgPrice: 1340000 },
+        { period: 'Jun', avgPrice: 1370000 }
+      ],
+      change: '+10.5%'
+    },
+    '1y': {
+      data: [
+        { period: 'Q1 2023', avgPrice: 1180000 },
+        { period: 'Q2 2023', avgPrice: 1220000 },
+        { period: 'Q3 2023', avgPrice: 1260000 },
+        { period: 'Q4 2023', avgPrice: 1300000 },
+        { period: 'Q1 2024', avgPrice: 1330000 },
+        { period: 'Q2 2024', avgPrice: 1370000 }
+      ],
+      change: '+16.1%'
+    },
+    '5y': {
+      data: [
+        { period: '2020', avgPrice: 980000 },
+        { period: '2021', avgPrice: 1100000 },
+        { period: '2022', avgPrice: 1250000 },
+        { period: '2023', avgPrice: 1300000 },
+        { period: '2024', avgPrice: 1370000 }
+      ],
+      change: '+39.8%'
+    },
+    '10y': {
+      data: [
+        { period: '2015', avgPrice: 650000 },
+        { period: '2016', avgPrice: 690000 },
+        { period: '2017', avgPrice: 750000 },
+        { period: '2018', avgPrice: 820000 },
+        { period: '2019', avgPrice: 890000 },
+        { period: '2020', avgPrice: 980000 },
+        { period: '2021', avgPrice: 1100000 },
+        { period: '2022', avgPrice: 1250000 },
+        { period: '2023', avgPrice: 1300000 },
+        { period: '2024', avgPrice: 1370000 }
+      ],
+      change: '+110.8%'
+    }
+  }
+
+  const nationalPriceData = {
+    '1m': {
+      data: [
+        { period: 'Week 1', avgPrice: 415000 },
+        { period: 'Week 2', avgPrice: 418000 },
+        { period: 'Week 3', avgPrice: 419000 },
+        { period: 'Week 4', avgPrice: 420000 }
+      ],
+      change: '+1.2%'
+    },
+    '6m': {
+      data: [
+        { period: 'Jan', avgPrice: 405000 },
+        { period: 'Feb', avgPrice: 408000 },
+        { period: 'Mar', avgPrice: 412000 },
+        { period: 'Apr', avgPrice: 415000 },
+        { period: 'May', avgPrice: 418000 },
+        { period: 'Jun', avgPrice: 420000 }
+      ],
+      change: '+3.7%'
+    },
+    '1y': {
+      data: [
+        { period: 'Q1 2023', avgPrice: 385000 },
+        { period: 'Q2 2023', avgPrice: 392000 },
+        { period: 'Q3 2023', avgPrice: 398000 },
+        { period: 'Q4 2023', avgPrice: 405000 },
+        { period: 'Q1 2024', avgPrice: 412000 },
+        { period: 'Q2 2024', avgPrice: 420000 }
+      ],
+      change: '+9.1%'
+    },
+    '5y': {
+      data: [
+        { period: '2020', avgPrice: 350000 },
+        { period: '2021', avgPrice: 375000 },
+        { period: '2022', avgPrice: 395000 },
+        { period: '2023', avgPrice: 405000 },
+        { period: '2024', avgPrice: 420000 }
+      ],
+      change: '+20.0%'
+    },
+    '10y': {
+      data: [
+        { period: '2015', avgPrice: 280000 },
+        { period: '2016', avgPrice: 295000 },
+        { period: '2017', avgPrice: 310000 },
+        { period: '2018', avgPrice: 325000 },
+        { period: '2019', avgPrice: 340000 },
+        { period: '2020', avgPrice: 350000 },
+        { period: '2021', avgPrice: 375000 },
+        { period: '2022', avgPrice: 395000 },
+        { period: '2023', avgPrice: 405000 },
+        { period: '2024', avgPrice: 420000 }
+      ],
+      change: '+50.0%'
+    }
+  }
+
+  const currentPriceData = dataScope === 'regional' ? priceData : nationalPriceData
 
   const inventoryData = [
     { month: 'Jan', listings: 450, sales: 320, inventory: 2.8 },
@@ -260,35 +372,73 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
           <TabsContent value="prices" className="space-y-6">
             <Card className="shadow-card bg-gradient-card">
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                  Price History - Last 6 Months
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                    Average Home Price Trends
+                  </CardTitle>
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant="secondary" 
+                      className={`
+                        ${currentPriceData[priceTimeframe].change.startsWith('+') 
+                          ? 'bg-success/10 text-success' 
+                          : 'bg-destructive/10 text-destructive'
+                        }
+                      `}
+                    >
+                      {currentPriceData[priceTimeframe].change.startsWith('+') ? (
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                      ) : (
+                        <TrendingDown className="h-3 w-3 mr-1" />
+                      )}
+                      {currentPriceData[priceTimeframe].change} change
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-center bg-muted rounded-lg p-1 mt-4">
+                  {['1m', '6m', '1y', '5y', '10y'].map((period) => (
+                    <Button
+                      key={period}
+                      variant={priceTimeframe === period ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setPriceTimeframe(period as any)}
+                      className="text-xs flex-1"
+                    >
+                      {period === '1m' ? '1 Month' : 
+                       period === '6m' ? '6 Months' :
+                       period === '1y' ? '1 Year' :
+                       period === '5y' ? '5 Years' : '10 Years'}
+                    </Button>
+                  ))}
+                </div>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
-                  <LineChart data={priceHistoryData}>
+                <ResponsiveContainer width="100%" height={500}>
+                  <LineChart data={currentPriceData[priceTimeframe].data}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
-                    <Tooltip 
-                      formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
-                      labelStyle={{ color: 'hsl(var(--foreground))' }}
+                    <XAxis dataKey="period" />
+                    <YAxis 
+                      tickFormatter={(value) => 
+                        dataScope === 'regional' 
+                          ? `$${(value / 1000000).toFixed(1)}M`
+                          : `$${(value / 1000).toFixed(0)}K`
+                      } 
                     />
-                    <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="medianPrice" 
-                      stroke="hsl(var(--primary))" 
-                      strokeWidth={3}
-                      name="Median Price"
+                    <Tooltip 
+                      formatter={(value: number) => [
+                        `$${value.toLocaleString()}`, 
+                        'Average Home Price'
+                      ]}
+                      labelStyle={{ color: 'hsl(var(--foreground))' }}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="avgPrice" 
-                      stroke="hsl(var(--secondary))" 
-                      strokeWidth={3}
-                      name="Average Price"
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={4}
+                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, fill: 'hsl(var(--primary))' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
