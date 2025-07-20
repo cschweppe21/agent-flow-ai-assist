@@ -63,203 +63,26 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
   const { city, state } = parseLocation(cityInput)
   const { data: marketData, loading, error, refreshStatus, fetchMarketData } = useMarketData(city, state)
 
-  // Comprehensive US cities and towns across all states
-  const popularCities = [
-    // Major Cities
-    'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
-    'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Indianapolis, IN', 'Charlotte, NC', 'San Francisco, CA', 'Seattle, WA', 'Denver, CO', 'Boston, MA',
-    'Nashville, TN', 'Baltimore, MD', 'Louisville, KY', 'Portland, OR', 'Oklahoma City, OK', 'Milwaukee, WI', 'Las Vegas, NV', 'Albuquerque, NM', 'Tucson, AZ', 'Fresno, CA',
-    'Sacramento, CA', 'Kansas City, MO', 'Mesa, AZ', 'Atlanta, GA', 'Colorado Springs, CO', 'Raleigh, NC', 'Omaha, NE', 'Miami, FL', 'Oakland, CA', 'Minneapolis, MN',
-    'Tulsa, OK', 'Wichita, KS', 'New Orleans, LA', 'Arlington, TX', 'Cleveland, OH', 'Tampa, FL', 'Bakersfield, CA', 'Aurora, CO', 'Anaheim, CA', 'Honolulu, HI',
-    'Santa Ana, CA', 'Corpus Christi, TX', 'Riverside, CA', 'Lexington, KY', 'Henderson, NV', 'Stockton, CA', 'Saint Paul, MN', 'Cincinnati, OH', 'St. Louis, MO', 'Pittsburgh, PA',
-    
-    // Alabama
-    'Birmingham, AL', 'Montgomery, AL', 'Mobile, AL', 'Huntsville, AL', 'Tuscaloosa, AL', 'Auburn, AL', 'Dothan, AL', 'Decatur, AL', 'Florence, AL', 'Gadsden, AL',
-    'Madison, AL', 'Hoover, AL', 'Vestavia Hills, AL', 'Anniston, AL', 'Bessemer, AL', 'Opelika, AL', 'Phenix City, AL', 'Prattville, AL', 'Troy, AL', 'Enterprise, AL',
-    
-    // Alaska
-    'Anchorage, AK', 'Fairbanks, AK', 'Juneau, AK', 'Sitka, AK', 'Ketchikan, AK', 'Wasilla, AK', 'Kenai, AK', 'Kodiak, AK', 'Bethel, AK', 'Palmer, AK',
-    
-    // Arizona
-    'Phoenix, AZ', 'Tucson, AZ', 'Mesa, AZ', 'Chandler, AZ', 'Scottsdale, AZ', 'Glendale, AZ', 'Gilbert, AZ', 'Tempe, AZ', 'Peoria, AZ', 'Surprise, AZ',
-    'Yuma, AZ', 'Avondale, AZ', 'Goodyear, AZ', 'Flagstaff, AZ', 'Buckeye, AZ', 'Lake Havasu City, AZ', 'Casa Grande, AZ', 'Sierra Vista, AZ', 'Maricopa, AZ', 'Oro Valley, AZ',
-    
-    // Arkansas
-    'Little Rock, AR', 'Fort Smith, AR', 'Fayetteville, AR', 'Springdale, AR', 'Jonesboro, AR', 'North Little Rock, AR', 'Conway, AR', 'Rogers, AR', 'Pine Bluff, AR', 'Bentonville, AR',
-    'Hot Springs, AR', 'Benton, AR', 'Texarkana, AR', 'Sherwood, AR', 'Jacksonville, AR', 'Russellville, AR', 'Bella Vista, AR', 'Paragould, AR', 'Cabot, AR', 'Searcy, AR',
-    
-    // California
-    'Los Angeles, CA', 'San Diego, CA', 'San Jose, CA', 'San Francisco, CA', 'Fresno, CA', 'Sacramento, CA', 'Long Beach, CA', 'Oakland, CA', 'Bakersfield, CA', 'Anaheim, CA',
-    'Santa Ana, CA', 'Riverside, CA', 'Stockton, CA', 'Irvine, CA', 'Chula Vista, CA', 'Fremont, CA', 'San Bernardino, CA', 'Modesto, CA', 'Fontana, CA', 'Oxnard, CA',
-    'Moreno Valley, CA', 'Huntington Beach, CA', 'Glendale, CA', 'Santa Clarita, CA', 'Garden Grove, CA', 'Oceanside, CA', 'Rancho Cucamonga, CA', 'Santa Rosa, CA', 'Ontario, CA', 'Lancaster, CA',
-    'Elk Grove, CA', 'Corona, CA', 'Palmdale, CA', 'Salinas, CA', 'Pomona, CA', 'Hayward, CA', 'Escondido, CA', 'Torrance, CA', 'Sunnyvale, CA', 'Orange, CA',
-    'Fullerton, CA', 'Pasadena, CA', 'Thousand Oaks, CA', 'Visalia, CA', 'Simi Valley, CA', 'Concord, CA', 'Roseville, CA', 'Victorville, CA', 'Santa Clara, CA', 'Vallejo, CA',
-    
-    // Colorado
-    'Denver, CO', 'Colorado Springs, CO', 'Aurora, CO', 'Fort Collins, CO', 'Lakewood, CO', 'Thornton, CO', 'Arvada, CO', 'Westminster, CO', 'Pueblo, CO', 'Centennial, CO',
-    'Boulder, CO', 'Greeley, CO', 'Longmont, CO', 'Loveland, CO', 'Grand Junction, CO', 'Broomfield, CO', 'Castle Rock, CO', 'Commerce City, CO', 'Parker, CO', 'Littleton, CO',
-    
-    // Connecticut
-    'Bridgeport, CT', 'New Haven, CT', 'Hartford, CT', 'Stamford, CT', 'Waterbury, CT', 'Norwalk, CT', 'Danbury, CT', 'New Britain, CT', 'West Hartford, CT', 'Greenwich, CT',
-    'Hamden, CT', 'Meriden, CT', 'Bristol, CT', 'Manchester, CT', 'West Haven, CT', 'Milford, CT', 'Stratford, CT', 'East Hartford, CT', 'Middletown, CT', 'Wallingford, CT',
-    
-    // Delaware
-    'Wilmington, DE', 'Dover, DE', 'Newark, DE', 'Middletown, DE', 'Smyrna, DE', 'Milford, DE', 'Seaford, DE', 'Georgetown, DE', 'Elsmere, DE', 'New Castle, DE',
-    
-    // Florida
-    'Jacksonville, FL', 'Miami, FL', 'Tampa, FL', 'Orlando, FL', 'St. Petersburg, FL', 'Hialeah, FL', 'Tallahassee, FL', 'Fort Lauderdale, FL', 'Port St. Lucie, FL', 'Cape Coral, FL',
-    'Pembroke Pines, FL', 'Hollywood, FL', 'Gainesville, FL', 'Miramar, FL', 'Coral Springs, FL', 'Clearwater, FL', 'Miami Gardens, FL', 'Palm Bay, FL', 'West Palm Beach, FL', 'Pompano Beach, FL',
-    'Lakeland, FL', 'Davie, FL', 'Miami Beach, FL', 'Sunrise, FL', 'Boca Raton, FL', 'Deltona, FL', 'Plantation, FL', 'Palm Coast, FL', 'Largo, FL', 'Melbourne, FL',
-    
-    // Georgia
-    'Atlanta, GA', 'Augusta, GA', 'Columbus, GA', 'Macon, GA', 'Savannah, GA', 'Athens, GA', 'Sandy Springs, GA', 'Roswell, GA', 'Johns Creek, GA', 'Albany, GA',
-    'Warner Robins, GA', 'Alpharetta, GA', 'Marietta, GA', 'Valdosta, GA', 'Smyrna, GA', 'Dunwoody, GA', 'Rome, GA', 'East Point, GA', 'Peachtree Corners, GA', 'Gainesville, GA',
-    
-    // Hawaii
-    'Honolulu, HI', 'East Honolulu, HI', 'Pearl City, HI', 'Hilo, HI', 'Kailua, HI', 'Waipahu, HI', 'Kaneohe, HI', 'Mililani, HI', 'Kahului, HI', 'Ewa Gentry, HI',
-    
-    // Idaho
-    'Boise, ID', 'Meridian, ID', 'Nampa, ID', 'Idaho Falls, ID', 'Pocatello, ID', 'Caldwell, ID', 'Coeur d\'Alene, ID', 'Twin Falls, ID', 'Lewiston, ID', 'Post Falls, ID',
-    
-    // Illinois
-    'Chicago, IL', 'Aurora, IL', 'Rockford, IL', 'Joliet, IL', 'Naperville, IL', 'Springfield, IL', 'Peoria, IL', 'Elgin, IL', 'Waukegan, IL', 'Cicero, IL',
-    'Champaign, IL', 'Bloomington, IL', 'Arlington Heights, IL', 'Evanston, IL', 'Decatur, IL', 'Schaumburg, IL', 'Bolingbrook, IL', 'Palatine, IL', 'Skokie, IL', 'Des Plaines, IL',
-    
-    // Indiana
-    'Indianapolis, IN', 'Fort Wayne, IN', 'Evansville, IN', 'South Bend, IN', 'Carmel, IN', 'Fishers, IN', 'Bloomington, IN', 'Hammond, IN', 'Gary, IN', 'Muncie, IN',
-    'Lafayette, IN', 'Terre Haute, IN', 'Kokomo, IN', 'Anderson, IN', 'Noblesville, IN', 'Greenwood, IN', 'Elkhart, IN', 'Mishawaka, IN', 'Lawrence, IN', 'Jeffersonville, IN',
-    
-    // Iowa
-    'Des Moines, IA', 'Cedar Rapids, IA', 'Davenport, IA', 'Sioux City, IA', 'Iowa City, IA', 'Waterloo, IA', 'Council Bluffs, IA', 'Ames, IA', 'West Des Moines, IA', 'Dubuque, IA',
-    'Ankeny, IA', 'Urbandale, IA', 'Cedar Falls, IA', 'Marion, IA', 'Bettendorf, IA', 'Mason City, IA', 'Marshalltown, IA', 'Clinton, IA', 'Burlington, IA', 'Ottumwa, IA',
-    
-    // Kansas
-    'Wichita, KS', 'Overland Park, KS', 'Kansas City, KS', 'Topeka, KS', 'Olathe, KS', 'Lawrence, KS', 'Shawnee, KS', 'Manhattan, KS', 'Lenexa, KS', 'Salina, KS',
-    'Hutchinson, KS', 'Leavenworth, KS', 'Leawood, KS', 'Dodge City, KS', 'Garden City, KS', 'Emporia, KS', 'Junction City, KS', 'Derby, KS', 'Prairie Village, KS', 'Hays, KS',
-    
-    // Kentucky
-    'Louisville, KY', 'Lexington, KY', 'Bowling Green, KY', 'Owensboro, KY', 'Covington, KY', 'Richmond, KY', 'Georgetown, KY', 'Florence, KY', 'Hopkinsville, KY', 'Nicholasville, KY',
-    'Elizabethtown, KY', 'Henderson, KY', 'Frankfort, KY', 'Jeffersontown, KY', 'Independence, KY', 'Paducah, KY', 'Radcliff, KY', 'Ashland, KY', 'Murray, KY', 'Erlanger, KY',
-    
-    // Louisiana
-    'New Orleans, LA', 'Baton Rouge, LA', 'Shreveport, LA', 'Lafayette, LA', 'Lake Charles, LA', 'Kenner, LA', 'Bossier City, LA', 'Monroe, LA', 'Alexandria, LA', 'Houma, LA',
-    'Marrero, LA', 'Bayou Cane, LA', 'Prairieville, LA', 'Central, LA', 'Slidell, LA', 'Ruston, LA', 'Hammond, LA', 'Sulphur, LA', 'Thibodaux, LA', 'Natchitoches, LA',
-    
-    // Maine
-    'Portland, ME', 'Lewiston, ME', 'Bangor, ME', 'South Portland, ME', 'Auburn, ME', 'Biddeford, ME', 'Sanford, ME', 'Saco, ME', 'Augusta, ME', 'Westbrook, ME',
-    
-    // Maryland
-    'Baltimore, MD', 'Frederick, MD', 'Rockville, MD', 'Gaithersburg, MD', 'Bowie, MD', 'Hagerstown, MD', 'Annapolis, MD', 'College Park, MD', 'Salisbury, MD', 'Laurel, MD',
-    'Greenbelt, MD', 'Cumberland, MD', 'Westminster, MD', 'Hyattsville, MD', 'Takoma Park, MD', 'Easton, MD', 'Glen Burnie, MD', 'Germantown, MD', 'Silver Spring, MD', 'Bethesda, MD',
-    
-    // Massachusetts
-    'Boston, MA', 'Worcester, MA', 'Springfield, MA', 'Lowell, MA', 'Cambridge, MA', 'New Bedford, MA', 'Brockton, MA', 'Quincy, MA', 'Lynn, MA', 'Fall River, MA',
-    'Newton, MA', 'Lawrence, MA', 'Somerville, MA', 'Framingham, MA', 'Haverhill, MA', 'Waltham, MA', 'Malden, MA', 'Brookline, MA', 'Plymouth, MA', 'Medford, MA',
-    
-    // Michigan
-    'Detroit, MI', 'Grand Rapids, MI', 'Warren, MI', 'Sterling Heights, MI', 'Lansing, MI', 'Ann Arbor, MI', 'Flint, MI', 'Dearborn, MI', 'Livonia, MI', 'Westland, MI',
-    'Troy, MI', 'Farmington Hills, MI', 'Kalamazoo, MI', 'Wyoming, MI', 'Southfield, MI', 'Rochester Hills, MI', 'Taylor, MI', 'Pontiac, MI', 'St. Clair Shores, MI', 'Royal Oak, MI',
-    
-    // Minnesota
-    'Minneapolis, MN', 'St. Paul, MN', 'Rochester, MN', 'Duluth, MN', 'Bloomington, MN', 'Brooklyn Park, MN', 'Plymouth, MN', 'St. Cloud, MN', 'Woodbury, MN', 'Eagan, MN',
-    'Burnsville, MN', 'Eden Prairie, MN', 'Coon Rapids, MN', 'Blaine, MN', 'Lakeville, MN', 'Minnetonka, MN', 'Apple Valley, MN', 'Edina, MN', 'St. Louis Park, MN', 'Moorhead, MN',
-    
-    // Mississippi
-    'Jackson, MS', 'Gulfport, MS', 'Southaven, MS', 'Hattiesburg, MS', 'Biloxi, MS', 'Meridian, MS', 'Tupelo, MS', 'Greenville, MS', 'Olive Branch, MS', 'Horn Lake, MS',
-    
-    // Missouri
-    'Kansas City, MO', 'St. Louis, MO', 'Springfield, MO', 'Independence, MO', 'Columbia, MO', 'Lee\'s Summit, MO', 'O\'Fallon, MO', 'St. Joseph, MO', 'St. Charles, MO', 'St. Peters, MO',
-    'Blue Springs, MO', 'Florissant, MO', 'Joplin, MO', 'Chesterfield, MO', 'Jefferson City, MO', 'Cape Girardeau, MO', 'Oakville, MO', 'Ballwin, MO', 'Raytown, MO', 'Liberty, MO',
-    
-    // Montana
-    'Billings, MT', 'Missoula, MT', 'Great Falls, MT', 'Bozeman, MT', 'Butte, MT', 'Helena, MT', 'Kalispell, MT', 'Havre, MT', 'Anaconda, MT', 'Miles City, MT',
-    
-    // Nebraska
-    'Omaha, NE', 'Lincoln, NE', 'Bellevue, NE', 'Grand Island, NE', 'Kearney, NE', 'Fremont, NE', 'Hastings, NE', 'North Platte, NE', 'Norfolk, NE', 'Columbus, NE',
-    
-    // Nevada
-    'Las Vegas, NV', 'Henderson, NV', 'Reno, NV', 'North Las Vegas, NV', 'Sparks, NV', 'Carson City, NV', 'Fernley, NV', 'Elko, NV', 'Mesquite, NV', 'Boulder City, NV',
-    
-    // New Hampshire
-    'Manchester, NH', 'Nashua, NH', 'Concord, NH', 'Derry, NH', 'Rochester, NH', 'Salem, NH', 'Dover, NH', 'Merrimack, NH', 'Londonderry, NH', 'Hudson, NH',
-    
-    // New Jersey
-    'Newark, NJ', 'Jersey City, NJ', 'Paterson, NJ', 'Elizabeth, NJ', 'Edison, NJ', 'Woodbridge, NJ', 'Lakewood, NJ', 'Toms River, NJ', 'Hamilton, NJ', 'Trenton, NJ',
-    'Clifton, NJ', 'Camden, NJ', 'Brick, NJ', 'East Orange, NJ', 'Bayonne, NJ', 'Vineland, NJ', 'Union City, NJ', 'Passaic, NJ', 'Hoboken, NJ', 'West New York, NJ',
-    
-    // New Mexico
-    'Albuquerque, NM', 'Las Cruces, NM', 'Rio Rancho, NM', 'Santa Fe, NM', 'Roswell, NM', 'Farmington, NM', 'Clovis, NM', 'Hobbs, NM', 'Alamogordo, NM', 'Carlsbad, NM',
-    
-    // New York
-    'New York, NY', 'Buffalo, NY', 'Rochester, NY', 'Yonkers, NY', 'Syracuse, NY', 'Albany, NY', 'New Rochelle, NY', 'Mount Vernon, NY', 'Schenectady, NY', 'Utica, NY',
-    'White Plains, NY', 'Hempstead, NY', 'Troy, NY', 'Niagara Falls, NY', 'Binghamton, NY', 'Freeport, NY', 'Valley Stream, NY', 'Long Beach, NY', 'Rome, NY', 'Watertown, NY',
-    
-    // North Carolina
-    'Charlotte, NC', 'Raleigh, NC', 'Greensboro, NC', 'Durham, NC', 'Winston-Salem, NC', 'Fayetteville, NC', 'Cary, NC', 'Wilmington, NC', 'High Point, NC', 'Greenville, NC',
-    'Asheville, NC', 'Concord, NC', 'Gastonia, NC', 'Jacksonville, NC', 'Chapel Hill, NC', 'Rocky Mount, NC', 'Burlington, NC', 'Wilson, NC', 'Huntersville, NC', 'Kannapolis, NC',
-    
-    // North Dakota
-    'Fargo, ND', 'Bismarck, ND', 'Grand Forks, ND', 'Minot, ND', 'West Fargo, ND', 'Williston, ND', 'Dickinson, ND', 'Mandan, ND', 'Jamestown, ND', 'Wahpeton, ND',
-    
-    // Ohio
-    'Columbus, OH', 'Cleveland, OH', 'Cincinnati, OH', 'Toledo, OH', 'Akron, OH', 'Dayton, OH', 'Parma, OH', 'Canton, OH', 'Youngstown, OH', 'Lorain, OH',
-    'Hamilton, OH', 'Springfield, OH', 'Kettering, OH', 'Elyria, OH', 'Lakewood, OH', 'Cuyahoga Falls, OH', 'Middletown, OH', 'Euclid, OH', 'Newark, OH', 'Mansfield, OH',
-    
-    // Oklahoma
-    'Oklahoma City, OK', 'Tulsa, OK', 'Norman, OK', 'Broken Arrow, OK', 'Lawton, OK', 'Edmond, OK', 'Moore, OK', 'Midwest City, OK', 'Enid, OK', 'Stillwater, OK',
-    'Muskogee, OK', 'Bartlesville, OK', 'Owasso, OK', 'Shawnee, OK', 'Ponca City, OK', 'Ardmore, OK', 'Duncan, OK', 'Bixby, OK', 'McAlester, OK', 'Tahlequah, OK',
-    
-    // Oregon
-    'Portland, OR', 'Eugene, OR', 'Salem, OR', 'Gresham, OR', 'Hillsboro, OR', 'Bend, OR', 'Beaverton, OR', 'Medford, OR', 'Springfield, OR', 'Corvallis, OR',
-    'Albany, OR', 'Tigard, OR', 'Lake Oswego, OR', 'Keizer, OR', 'Grants Pass, OR', 'Oregon City, OR', 'McMinnville, OR', 'Redmond, OR', 'Tualatin, OR', 'West Linn, OR',
-    
-    // Pennsylvania
-    'Philadelphia, PA', 'Pittsburgh, PA', 'Allentown, PA', 'Erie, PA', 'Reading, PA', 'Scranton, PA', 'Bethlehem, PA', 'Lancaster, PA', 'Harrisburg, PA', 'Altoona, PA',
-    'York, PA', 'State College, PA', 'Wilkes-Barre, PA', 'Chester, PA', 'Williamsport, PA', 'Easton, PA', 'Lebanon, PA', 'Hazleton, PA', 'New Castle, PA', 'Johnstown, PA',
-    
-    // Rhode Island
-    'Providence, RI', 'Warwick, RI', 'Cranston, RI', 'Pawtucket, RI', 'East Providence, RI', 'Woonsocket, RI', 'Newport, RI', 'Central Falls, RI', 'Westerly, RI', 'Cumberland, RI',
-    
-    // South Carolina
-    'Charleston, SC', 'Columbia, SC', 'North Charleston, SC', 'Mount Pleasant, SC', 'Rock Hill, SC', 'Greenville, SC', 'Summerville, SC', 'Sumter, SC', 'Goose Creek, SC', 'Hilton Head Island, SC',
-    
-    // South Dakota
-    'Sioux Falls, SD', 'Rapid City, SD', 'Aberdeen, SD', 'Brookings, SD', 'Watertown, SD', 'Mitchell, SD', 'Yankton, SD', 'Pierre, SD', 'Huron, SD', 'Vermillion, SD',
-    
-    // Tennessee
-    'Memphis, TN', 'Nashville, TN', 'Knoxville, TN', 'Chattanooga, TN', 'Clarksville, TN', 'Murfreesboro, TN', 'Franklin, TN', 'Jackson, TN', 'Johnson City, TN', 'Bartlett, TN',
-    
-    // Texas
-    'Houston, TX', 'San Antonio, TX', 'Dallas, TX', 'Austin, TX', 'Fort Worth, TX', 'El Paso, TX', 'Arlington, TX', 'Corpus Christi, TX', 'Plano, TX', 'Laredo, TX',
-    'Lubbock, TX', 'Garland, TX', 'Irving, TX', 'Amarillo, TX', 'Grand Prairie, TX', 'Brownsville, TX', 'McKinney, TX', 'Frisco, TX', 'Pasadena, TX', 'Killeen, TX',
-    'Mesquite, TX', 'McAllen, TX', 'Carrollton, TX', 'Midland, TX', 'Waco, TX', 'Round Rock, TX', 'Richardson, TX', 'Lewisville, TX', 'College Station, TX', 'Pearland, TX',
-    
-    // Utah
-    'Salt Lake City, UT', 'West Valley City, UT', 'Provo, UT', 'West Jordan, UT', 'Orem, UT', 'Sandy, UT', 'Ogden, UT', 'St. George, UT', 'Layton, UT', 'Taylorsville, UT',
-    
-    // Vermont
-    'Burlington, VT', 'Essex, VT', 'South Burlington, VT', 'Colchester, VT', 'Rutland, VT', 'Montpelier, VT', 'Winooski, VT', 'St. Albans, VT', 'Newport, VT', 'Vergennes, VT',
-    
-    // Virginia
-    'Virginia Beach, VA', 'Norfolk, VA', 'Chesapeake, VA', 'Richmond, VA', 'Newport News, VA', 'Alexandria, VA', 'Hampton, VA', 'Portsmouth, VA', 'Suffolk, VA', 'Roanoke, VA',
-    'Lynchburg, VA', 'Harrisonburg, VA', 'Leesburg, VA', 'Charlottesville, VA', 'Danville, VA', 'Blacksburg, VA', 'Manassas, VA', 'Petersburg, VA', 'Bristol, VA', 'Fredericksburg, VA',
-    
-    // Washington
-    'Seattle, WA', 'Spokane, WA', 'Tacoma, WA', 'Vancouver, WA', 'Bellevue, WA', 'Kent, WA', 'Everett, WA', 'Renton, WA', 'Yakima, WA', 'Federal Way, WA',
-    'Spokane Valley, WA', 'Bellingham, WA', 'Kennewick, WA', 'Auburn, WA', 'Pasco, WA', 'Marysville, WA', 'Lakewood, WA', 'Redmond, WA', 'Shoreline, WA', 'Richland, WA',
-    
-    // West Virginia
-    'Charleston, WV', 'Huntington, WV', 'Parkersburg, WV', 'Morgantown, WV', 'Wheeling, WV', 'Martinsburg, WV', 'Fairmont, WV', 'Beckley, WV', 'Clarksburg, WV', 'Lewisburg, WV',
-    
-    // Wisconsin
-    'Milwaukee, WI', 'Madison, WI', 'Green Bay, WI', 'Kenosha, WI', 'Racine, WI', 'Appleton, WI', 'Waukesha, WI', 'Oshkosh, WI', 'Eau Claire, WI', 'Janesville, WI',
-    'West Allis, WI', 'La Crosse, WI', 'Sheboygan, WI', 'Wauwatosa, WI', 'Fond du Lac, WI', 'New Berlin, WI', 'Wausau, WI', 'Brookfield, WI', 'Greenfield, WI', 'Beloit, WI',
-    
-    // Wyoming
-    'Cheyenne, WY', 'Casper, WY', 'Laramie, WY', 'Gillette, WY', 'Rock Springs, WY', 'Sheridan, WY', 'Green River, WY', 'Evanston, WY', 'Riverton, WY', 'Jackson, WY'
+  // Cities with automatically updated market data
+  const availableCities = [
+    'San Francisco, CA',
+    'New York, NY', 
+    'Los Angeles, CA',
+    'Chicago, IL',
+    'Houston, TX',
+    'Boston, MA',
+    'Seattle, WA',
+    'Denver, CO',
+    'Austin, TX',
+    'Miami, FL',
+    'Atlanta, GA',
+    'Dallas, TX',
+    'Phoenix, AZ',
+    'San Diego, CA',
+    'Portland, OR'
   ]
 
-  const filteredCities = popularCities.filter(city =>
+  const filteredCities = availableCities.filter(city =>
     city.toLowerCase().includes(cityInput.toLowerCase())
   ).slice(0, 12) // Show top 12 suggestions
 
