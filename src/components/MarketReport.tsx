@@ -1,8 +1,6 @@
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -323,49 +321,40 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
             </DialogTitle>
             <div className="flex items-center space-x-2">
               {dataScope === 'regional' && (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 relative">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <Popover open={showCitySuggestions} onOpenChange={setShowCitySuggestions}>
-                    <PopoverTrigger asChild>
-                      <Input
-                        placeholder="Enter city name..."
-                        value={cityInput}
-                        onChange={(e) => {
-                          setCityInput(e.target.value)
-                          setShowCitySuggestions(true)
-                        }}
-                        onFocus={() => setShowCitySuggestions(true)}
-                        className="w-48"
-                      />
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0" align="start">
-                      <Command>
-                        <CommandList>
-                          <CommandEmpty>No cities found.</CommandEmpty>
-                          <CommandGroup>
-                            {filteredCities.map((city, index) => (
-                              <CommandItem
-                                key={index}
-                                value={city.name}
-                                onSelect={(value) => {
-                                  setCityInput(value)
-                                  setShowCitySuggestions(false)
-                                }}
-                                className="cursor-pointer"
-                              >
-                                <div className="flex items-center justify-between w-full">
-                                  <span className="font-medium">{city.name}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {(city.population / 1000).toFixed(0)}K
-                                  </span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <div className="relative">
+                    <Input
+                      placeholder="Enter city name..."
+                      value={cityInput}
+                      onChange={(e) => {
+                        setCityInput(e.target.value)
+                        setShowCitySuggestions(true)
+                      }}
+                      onFocus={() => setShowCitySuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowCitySuggestions(false), 200)}
+                      className="w-48"
+                    />
+                    {showCitySuggestions && filteredCities.length > 0 && cityInput.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 bg-background border border-border rounded-md shadow-lg z-50 mt-1 max-h-48 overflow-y-auto">
+                        {filteredCities.map((city, index) => (
+                          <div
+                            key={index}
+                            className="px-3 py-2 hover:bg-muted cursor-pointer flex items-center justify-between"
+                            onClick={() => {
+                              setCityInput(city.name)
+                              setShowCitySuggestions(false)
+                            }}
+                          >
+                            <span className="font-medium">{city.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {(city.population / 1000).toFixed(0)}K
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
               <div className="flex items-center bg-muted rounded-lg p-1">
