@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,8 +17,10 @@ import {
   Target,
   Users,
   Building,
-  MapPin
+  MapPin,
+  RefreshCw
 } from "lucide-react"
+import { useMarketData } from "@/hooks/useMarketData"
 import { 
   LineChart, 
   Line, 
@@ -48,6 +50,18 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
   const [cityInput, setCityInput] = useState('San Francisco, CA')
   const [showCitySuggestions, setShowCitySuggestions] = useState(false)
   const [priceTimeframe, setPriceTimeframe] = useState<'1m' | '6m' | '1y' | '5y' | '10y'>('6m')
+  
+  // Parse city and state from input
+  const parseLocation = (input: string) => {
+    const parts = input.split(', ')
+    return {
+      city: parts[0]?.trim() || '',
+      state: parts[1]?.trim() || ''
+    }
+  }
+  
+  const { city, state } = parseLocation(cityInput)
+  const { data: marketData, loading, error, refreshStatus, fetchMarketData } = useMarketData(city, state)
 
   // Comprehensive US cities and towns across all states
   const popularCities = [
@@ -442,7 +456,25 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
     { metric: 'New Construction', current: '1.4M', change: '+8%', trend: 'up' }
   ]
 
-  const marketData = dataScope === 'regional' ? generateCityData(cityInput) : {
+  // Use real data from the hook when available, fallback to generated data
+  const displayData = marketData ? {
+    medianPrice: marketData.median_home_price ? `$${(marketData.median_home_price / 1000).toFixed(0)}K` : 'N/A',
+    priceChange: marketData.price_change_percent ? `${marketData.price_change_percent >= 0 ? '+' : ''}${marketData.price_change_percent.toFixed(1)}%` : 'N/A',
+    daysOnMarket: marketData.days_on_market?.toString() || 'N/A',
+    marketChange: '+5.2%', // Placeholder for market change calculation
+    activeListings: marketData.active_listings?.toLocaleString() || 'N/A',
+    listingsChange: '+2.1%', // Placeholder for listings change calculation  
+    salesVolume: marketData.sales_volume?.toLocaleString() || 'N/A',
+    salesChange: '+8.5%', // Placeholder for sales change calculation
+    interestRate: '6.8%',
+    rateChange: '+0.2%',
+    pricePerSqFt: marketData.price_per_sqft ? `$${marketData.price_per_sqft}` : 'N/A',
+    sqftChange: '+3.1%', // Placeholder for sqft change calculation
+    inventory: marketData.inventory_months?.toFixed(1) || 'N/A',
+    inventoryTrend: marketData.inventory_months ? 
+      (marketData.inventory_months < 2.5 ? 'Seller\'s Market' : 
+       marketData.inventory_months > 3.5 ? 'Buyer\'s Market' : 'Balanced Market') : 'N/A'
+  } : (dataScope === 'regional' ? generateCityData(cityInput) : {
     medianPrice: '$420K',
     priceChange: '+3.8%',
     daysOnMarket: '35',
@@ -457,6 +489,12 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
     sqftChange: '+2.9%',
     inventory: '3.1',
     inventoryTrend: 'Balanced Market'
+  })
+
+  const handleRefresh = () => {
+    if (city && state) {
+      fetchMarketData(city, state, true)
+    }
   }
 
   return (
@@ -503,6 +541,16 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   </div>
                 </div>
               )}
+              <Button 
+                onClick={handleRefresh} 
+                disabled={loading}
+                size="sm"
+                variant="outline"
+                className="text-xs"
+              >
+                <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
               <div className="flex items-center bg-muted rounded-lg p-1">
                 <Button
                   variant={dataScope === 'regional' ? 'default' : 'ghost'}
@@ -540,10 +588,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Median Price</p>
-                      <p className="text-2xl font-bold">{marketData.medianPrice}</p>
+                      <p className="text-2xl font-bold">{displayData.medianPrice}</p>
                       <Badge variant="secondary" className="bg-success/10 text-success mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        {marketData.priceChange}
+                        {displayData.priceChange}
                       </Badge>
                     </div>
                     <Home className="h-8 w-8 text-primary" />
@@ -556,10 +604,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Days on Market</p>
-                      <p className="text-2xl font-bold">{marketData.daysOnMarket}</p>
+                      <p className="text-2xl font-bold">{displayData.daysOnMarket}</p>
                       <Badge variant="secondary" className="bg-destructive/10 text-destructive mt-1">
                         <TrendingDown className="h-3 w-3 mr-1" />
-                        {marketData.marketChange}
+                        {displayData.marketChange}
                       </Badge>
                     </div>
                     <Calendar className="h-8 w-8 text-primary" />
@@ -572,10 +620,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Active Listings</p>
-                      <p className="text-2xl font-bold">{marketData.activeListings}</p>
+                      <p className="text-2xl font-bold">{displayData.activeListings}</p>
                       <Badge variant="secondary" className="bg-warning/10 text-warning mt-1">
                         <TrendingDown className="h-3 w-3 mr-1" />
-                        {marketData.listingsChange}
+                        {displayData.listingsChange}
                       </Badge>
                     </div>
                     <Building className="h-8 w-8 text-primary" />
@@ -588,10 +636,10 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground">Sales Volume</p>
-                      <p className="text-2xl font-bold">{marketData.salesVolume}</p>
+                      <p className="text-2xl font-bold">{displayData.salesVolume}</p>
                       <Badge variant="secondary" className="bg-success/10 text-success mt-1">
                         <TrendingUp className="h-3 w-3 mr-1" />
-                        {marketData.salesChange}
+                        {displayData.salesChange}
                       </Badge>
                     </div>
                     <Activity className="h-8 w-8 text-primary" />

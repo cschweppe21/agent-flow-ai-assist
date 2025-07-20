@@ -240,6 +240,36 @@ export type Database = {
           },
         ]
       }
+      data_refresh_log: {
+        Row: {
+          data_source: string
+          error_message: string | null
+          id: string
+          records_updated: number | null
+          refresh_completed_at: string | null
+          refresh_started_at: string
+          status: string
+        }
+        Insert: {
+          data_source: string
+          error_message?: string | null
+          id?: string
+          records_updated?: number | null
+          refresh_completed_at?: string | null
+          refresh_started_at?: string
+          status?: string
+        }
+        Update: {
+          data_source?: string
+          error_message?: string | null
+          id?: string
+          records_updated?: number | null
+          refresh_completed_at?: string | null
+          refresh_started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       listings: {
         Row: {
           address: string
@@ -288,6 +318,54 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      market_data: {
+        Row: {
+          active_listings: number | null
+          city: string
+          created_at: string
+          data_source: string
+          days_on_market: number | null
+          id: string
+          inventory_months: number | null
+          median_home_price: number | null
+          price_change_percent: number | null
+          price_per_sqft: number | null
+          sales_volume: number | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          active_listings?: number | null
+          city: string
+          created_at?: string
+          data_source: string
+          days_on_market?: number | null
+          id?: string
+          inventory_months?: number | null
+          median_home_price?: number | null
+          price_change_percent?: number | null
+          price_per_sqft?: number | null
+          sales_volume?: number | null
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          active_listings?: number | null
+          city?: string
+          created_at?: string
+          data_source?: string
+          days_on_market?: number | null
+          id?: string
+          inventory_months?: number | null
+          median_home_price?: number | null
+          price_change_percent?: number | null
+          price_per_sqft?: number | null
+          sales_volume?: number | null
+          state?: string
+          updated_at?: string
         }
         Relationships: []
       }
