@@ -20,6 +20,7 @@ import {
   AlertTriangle, 
   Plus, 
   TrendingUp,
+  TrendingDown,
   Users,
   CheckCircle,
   Clock,
@@ -29,6 +30,7 @@ import {
 } from "lucide-react"
 import { AIModal } from "@/components/AIModal"
 import { BuyerProfile } from "@/components/BuyerProfile"
+import { MarketReport } from "@/components/MarketReport"
 
 export const Dashboard = () => {
   const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
@@ -36,6 +38,7 @@ export const Dashboard = () => {
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
   const [showCommissionDashboard, setShowCommissionDashboard] = useState(false)
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null)
+  const [showMarketReport, setShowMarketReport] = useState(false)
   const navigate = useNavigate()
 
   if (loading) {
@@ -204,36 +207,6 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Listings */}
-          <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
-                <Home className="h-5 w-5 mr-2 text-primary" />
-                Recent Listings
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {displayListings.map((listing) => (
-                  <div key={listing.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm text-foreground truncate">{listing.address}</p>
-                      <p className="text-xs text-muted-foreground">${listing.price.toLocaleString()}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {listing.daysOnMarket} days
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button variant="ghost" className="w-full mt-4 text-primary hover:bg-primary/10">
-                View All Listings
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* Market Insights */}
           <Card className="shadow-card bg-gradient-card border-border/50">
             <CardHeader>
@@ -243,24 +216,88 @@ export const Dashboard = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Avg. Home Price</span>
-                  <span className="font-semibold text-foreground">$1.2M</span>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-muted-foreground">Median Price</span>
+                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                        <TrendingUp className="h-2 w-2 mr-1" />
+                        +5.2%
+                      </Badge>
+                    </div>
+                    <span className="font-bold text-lg text-foreground">$1.28M</span>
+                  </div>
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-muted-foreground">Days on Market</span>
+                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                        <TrendingDown className="h-2 w-2 mr-1" />
+                        -12%
+                      </Badge>
+                    </div>
+                    <span className="font-bold text-lg text-foreground">28 days</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Market Trend</span>
-                  <Badge variant="secondary" className="bg-success/10 text-success">
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    +5.2%
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Days on Market</span>
-                  <span className="font-semibold text-foreground">32 days</span>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Active Listings</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-foreground">470</span>
+                      <Badge variant="secondary" className="bg-warning/10 text-warning text-xs">
+                        <TrendingDown className="h-2 w-2 mr-1" />
+                        -8%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Sales Volume</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-foreground">410</span>
+                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                        <TrendingUp className="h-2 w-2 mr-1" />
+                        +18%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Interest Rates</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-foreground">6.8%</span>
+                      <Badge variant="secondary" className="bg-warning/10 text-warning text-xs">
+                        <TrendingUp className="h-2 w-2 mr-1" />
+                        +0.2%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Price per Sq Ft</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-foreground">$850</span>
+                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                        <TrendingUp className="h-2 w-2 mr-1" />
+                        +3.1%
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Inventory (Months)</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-semibold text-foreground">2.2</span>
+                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
+                        <TrendingDown className="h-2 w-2 mr-1" />
+                        Seller's Market
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <Button variant="ghost" className="w-full mt-4 text-primary hover:bg-primary/10">
+              <Button 
+                variant="ghost" 
+                className="w-full mt-4 text-primary hover:bg-primary/10"
+                onClick={() => setShowMarketReport(true)}
+              >
                 View Full Report
               </Button>
             </CardContent>
@@ -305,6 +342,12 @@ export const Dashboard = () => {
           onContact={(buyer) => console.log('Contact buyer:', buyer.name)}
         />
       )}
+
+      {/* Market Report */}
+      <MarketReport 
+        isOpen={showMarketReport}
+        onClose={() => setShowMarketReport(false)}
+      />
     </div>
   )
 }
