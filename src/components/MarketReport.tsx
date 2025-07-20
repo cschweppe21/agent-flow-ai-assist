@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -46,7 +48,59 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
   const [activeTab, setActiveTab] = useState("overview")
   const [dataScope, setDataScope] = useState<'regional' | 'national'>('regional')
   const [cityInput, setCityInput] = useState('San Francisco, CA')
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false)
   const [priceTimeframe, setPriceTimeframe] = useState<'1m' | '6m' | '1y' | '5y' | '10y'>('6m')
+
+  // Popular US cities sorted by population
+  const popularCities = [
+    { name: 'New York, NY', population: 8336817 },
+    { name: 'Los Angeles, CA', population: 3979576 },
+    { name: 'Chicago, IL', population: 2693976 },
+    { name: 'Houston, TX', population: 2320268 },
+    { name: 'Phoenix, AZ', population: 1680992 },
+    { name: 'Philadelphia, PA', population: 1584064 },
+    { name: 'San Antonio, TX', population: 1547253 },
+    { name: 'San Diego, CA', population: 1423851 },
+    { name: 'Dallas, TX', population: 1343573 },
+    { name: 'San Jose, CA', population: 1021795 },
+    { name: 'Austin, TX', population: 978908 },
+    { name: 'Jacksonville, FL', population: 949611 },
+    { name: 'Fort Worth, TX', population: 918915 },
+    { name: 'Columbus, OH', population: 905748 },
+    { name: 'Indianapolis, IN', population: 887642 },
+    { name: 'Charlotte, NC', population: 874579 },
+    { name: 'San Francisco, CA', population: 873965 },
+    { name: 'Seattle, WA', population: 753675 },
+    { name: 'Denver, CO', population: 715522 },
+    { name: 'Boston, MA', population: 695506 },
+    { name: 'Nashville, TN', population: 689447 },
+    { name: 'Baltimore, MD', population: 585708 },
+    { name: 'Louisville, KY', population: 633045 },
+    { name: 'Portland, OR', population: 652503 },
+    { name: 'Oklahoma City, OK', population: 695755 },
+    { name: 'Milwaukee, WI', population: 577222 },
+    { name: 'Las Vegas, NV', population: 641903 },
+    { name: 'Albuquerque, NM', population: 564559 },
+    { name: 'Tucson, AZ', population: 548073 },
+    { name: 'Fresno, CA', population: 542107 },
+    { name: 'Sacramento, CA', population: 524943 },
+    { name: 'Kansas City, MO', population: 508090 },
+    { name: 'Mesa, AZ', population: 504258 },
+    { name: 'Atlanta, GA', population: 498715 },
+    { name: 'Colorado Springs, CO', population: 478961 },
+    { name: 'Raleigh, NC', population: 474069 },
+    { name: 'Omaha, NE', population: 486051 },
+    { name: 'Miami, FL', population: 442241 },
+    { name: 'Oakland, CA', population: 433031 },
+    { name: 'Minneapolis, MN', population: 429954 },
+    { name: 'Tulsa, OK', population: 413066 },
+    { name: 'Wichita, KS', population: 397532 },
+    { name: 'New Orleans, LA', population: 383997 }
+  ]
+
+  const filteredCities = popularCities.filter(city =>
+    city.name.toLowerCase().includes(cityInput.toLowerCase())
+  ).slice(0, 8) // Show top 8 suggestions
 
   // Generate dynamic market data based on city input
   const generateCityData = (cityName: string) => {
@@ -271,12 +325,47 @@ export const MarketReport = ({ isOpen, onClose }: MarketReportProps) => {
               {dataScope === 'regional' && (
                 <div className="flex items-center space-x-2">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Enter city name..."
-                    value={cityInput}
-                    onChange={(e) => setCityInput(e.target.value)}
-                    className="w-48"
-                  />
+                  <Popover open={showCitySuggestions} onOpenChange={setShowCitySuggestions}>
+                    <PopoverTrigger asChild>
+                      <Input
+                        placeholder="Enter city name..."
+                        value={cityInput}
+                        onChange={(e) => {
+                          setCityInput(e.target.value)
+                          setShowCitySuggestions(true)
+                        }}
+                        onFocus={() => setShowCitySuggestions(true)}
+                        className="w-48"
+                      />
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-0" align="start">
+                      <Command>
+                        <CommandList>
+                          <CommandEmpty>No cities found.</CommandEmpty>
+                          <CommandGroup>
+                            {filteredCities.map((city, index) => (
+                              <CommandItem
+                                key={index}
+                                value={city.name}
+                                onSelect={(value) => {
+                                  setCityInput(value)
+                                  setShowCitySuggestions(false)
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <span className="font-medium">{city.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {(city.population / 1000).toFixed(0)}K
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               )}
               <div className="flex items-center bg-muted rounded-lg p-1">
