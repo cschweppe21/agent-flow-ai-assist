@@ -23,6 +23,9 @@ interface Vendor {
   notes?: string
   rating?: number
   is_preferred: boolean
+  user_id: string
+  created_at: string
+  updated_at: string
 }
 
 interface VendorProfileProps {
