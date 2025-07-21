@@ -485,6 +485,57 @@ export type Database = {
           },
         ]
       }
+      vendors: {
+        Row: {
+          address: string | null
+          business_name: string | null
+          category: string
+          created_at: string
+          email: string | null
+          id: string
+          is_preferred: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          rating: number | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name?: string | null
+          category: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_preferred?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string | null
+          category?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_preferred?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          rating?: number | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

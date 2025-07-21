@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { MetricsCard } from "@/components/MetricsCard"
 import { ListingCard } from "@/components/ListingCard"
@@ -26,11 +26,14 @@ import {
   Clock,
   Bot,
   MessageSquare,
-  Phone
+  Phone,
+  Star
 } from "lucide-react"
 import { AIModal } from "@/components/AIModal"
 import { BuyerProfile } from "@/components/BuyerProfile"
-import { MarketReport } from "@/components/MarketReport"
+import { VendorCard } from "@/components/VendorCard"
+import { VendorProfile } from "@/components/VendorProfile"
+import { supabase } from "@/integrations/supabase/client"
 
 export const Dashboard = () => {
   const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
@@ -38,7 +41,9 @@ export const Dashboard = () => {
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
   const [showCommissionDashboard, setShowCommissionDashboard] = useState(false)
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null)
-  const [showMarketReport, setShowMarketReport] = useState(false)
+  const [selectedVendor, setSelectedVendor] = useState<any>(null)
+  const [vendors, setVendors] = useState<any[]>([])
+  const [loadingVendors, setLoadingVendors] = useState(true)
   const navigate = useNavigate()
 
   if (loading) {
@@ -81,6 +86,29 @@ export const Dashboard = () => {
     dueDate: task.due_date ? new Date(task.due_date).toLocaleDateString() : "No due date",
     overdue: task.due_date ? new Date(task.due_date) < new Date() : false
   }))
+
+  // Fetch vendors on component mount
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('vendors')
+          .select('*')
+          .eq('is_preferred', true)
+          .order('rating', { ascending: false, nullsFirst: false })
+          .limit(5)
+
+        if (error) throw error
+        setVendors(data || [])
+      } catch (error) {
+        console.error('Error fetching vendors:', error)
+      } finally {
+        setLoadingVendors(false)
+      }
+    }
+
+    fetchVendors()
+  }, [])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -207,99 +235,83 @@ export const Dashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Market Insights */}
+          {/* Vendors */}
           <Card className="shadow-card bg-gradient-card border-border/50">
             <CardHeader>
               <CardTitle className="flex items-center text-foreground">
-                <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                Market Insights
+                <Users className="h-5 w-5 mr-2 text-primary" />
+                Preferred Vendors
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-muted-foreground">Median Price</span>
-                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
-                        <TrendingUp className="h-2 w-2 mr-1" />
-                        +5.2%
-                      </Badge>
-                    </div>
-                    <span className="font-bold text-lg text-foreground">$1.28M</span>
+              <div className="space-y-3">
+                {loadingVendors ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                    <p className="text-xs text-muted-foreground mt-2">Loading vendors...</p>
                   </div>
-                  <div className="p-3 bg-background/50 rounded-lg">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-muted-foreground">Days on Market</span>
-                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
-                        <TrendingDown className="h-2 w-2 mr-1" />
-                        -12%
-                      </Badge>
-                    </div>
-                    <span className="font-bold text-lg text-foreground">28 days</span>
+                ) : vendors.length > 0 ? (
+                  <>
+                    {vendors.slice(0, 3).map((vendor) => (
+                      <div key={vendor.id} className="p-3 bg-background/50 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium text-sm">{vendor.business_name || vendor.name}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{vendor.category}</p>
+                          </div>
+                          {vendor.rating && (
+                            <div className="flex items-center">
+                              <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                              <span className="text-xs ml-1">{vendor.rating.toFixed(1)}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          {vendor.phone && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(`tel:${vendor.phone}`, '_self')}
+                              className="text-xs flex-1"
+                            >
+                              <Phone className="h-3 w-3 mr-1" />
+                              Call
+                            </Button>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedVendor(vendor)}
+                            className="text-xs flex-1"
+                          >
+                            View
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    <Button 
+                      variant="ghost" 
+                      className="w-full mt-2 text-primary hover:bg-primary/10"
+                      onClick={() => navigate('/vendors')}
+                    >
+                      View All Vendors
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-3">No vendors added yet</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/vendors')}
+                      className="text-xs"
+                    >
+                      Add Your First Vendor
+                    </Button>
                   </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Active Listings</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-foreground">470</span>
-                      <Badge variant="secondary" className="bg-warning/10 text-warning text-xs">
-                        <TrendingDown className="h-2 w-2 mr-1" />
-                        -8%
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Sales Volume</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-foreground">410</span>
-                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
-                        <TrendingUp className="h-2 w-2 mr-1" />
-                        +18%
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Interest Rates</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-foreground">6.8%</span>
-                      <Badge variant="secondary" className="bg-warning/10 text-warning text-xs">
-                        <TrendingUp className="h-2 w-2 mr-1" />
-                        +0.2%
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Price per Sq Ft</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-foreground">$850</span>
-                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
-                        <TrendingUp className="h-2 w-2 mr-1" />
-                        +3.1%
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Inventory (Months)</span>
-                    <div className="flex items-center space-x-2">
-                      <span className="font-semibold text-foreground">2.2</span>
-                      <Badge variant="secondary" className="bg-success/10 text-success text-xs">
-                        <TrendingDown className="h-2 w-2 mr-1" />
-                        Seller's Market
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
-              <Button 
-                variant="ghost" 
-                className="w-full mt-4 text-primary hover:bg-primary/10"
-                onClick={() => setShowMarketReport(true)}
-              >
-                View Full Report
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -343,11 +355,24 @@ export const Dashboard = () => {
         />
       )}
 
-      {/* Market Report */}
-      <MarketReport 
-        isOpen={showMarketReport}
-        onClose={() => setShowMarketReport(false)}
-      />
+      {/* Vendor Profile */}
+      {selectedVendor && (
+        <VendorProfile
+          vendor={selectedVendor}
+          isOpen={!!selectedVendor}
+          onClose={() => setSelectedVendor(null)}
+          onSave={(updatedVendor) => {
+            // Update vendor in list
+            setVendors(vendors.map(v => v.id === updatedVendor.id ? updatedVendor : v))
+            setSelectedVendor(updatedVendor)
+          }}
+          onContact={(vendor) => {
+            if (vendor.phone) {
+              window.open(`tel:${vendor.phone}`, '_self')
+            }
+          }}
+        />
+      )}
     </div>
   )
 }
