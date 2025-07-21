@@ -80,6 +80,15 @@ const vendorCategories = [
       { value: 'stager', label: 'Home Stager', icon: '🏠' },
       { value: 'photographer', label: 'Real Estate Photographer', icon: '📸' }
     ]
+  },
+  {
+    id: 'other',
+    name: 'Other Services',
+    icon: Users,
+    color: 'bg-purple-500/10 text-purple-700 dark:text-purple-300',
+    types: [
+      { value: 'other', label: 'Other Service Provider', icon: '🔧' }
+    ]
   }
 ]
 

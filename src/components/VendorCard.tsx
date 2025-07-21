@@ -35,7 +35,8 @@ const getCategoryColor = (category: string) => {
     photographer: "bg-pink-500/10 text-pink-700 dark:text-pink-300",
     stager: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300",
     attorney: "bg-red-500/10 text-red-700 dark:text-red-300",
-    insurance: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-300"
+    insurance: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
+    other: "bg-purple-500/10 text-purple-700 dark:text-purple-300"
   }
   return colors[category as keyof typeof colors] || "bg-muted/50 text-muted-foreground"
 }
@@ -51,6 +52,7 @@ const getCategoryIcon = (category: string) => {
     case 'stager': return '🏠'
     case 'attorney': return '⚖️'
     case 'insurance': return '🛡️'
+    case 'other': return '🔧'
     default: return '👤'
   }
 }

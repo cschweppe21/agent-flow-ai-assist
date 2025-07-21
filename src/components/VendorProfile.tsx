@@ -44,7 +44,8 @@ const vendorCategories = [
   'photographer',
   'stager',
   'attorney',
-  'insurance'
+  'insurance',
+  'other'
 ]
 
 export const VendorProfile = ({ vendor, isOpen, onClose, onSave, onContact }: VendorProfileProps) => {
