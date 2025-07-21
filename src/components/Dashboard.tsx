@@ -46,6 +46,29 @@ export const Dashboard = () => {
   const [loadingVendors, setLoadingVendors] = useState(true)
   const navigate = useNavigate()
 
+  // Fetch vendors on component mount - moved before early returns
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('vendors')
+          .select('*')
+          .eq('is_preferred', true)
+          .order('rating', { ascending: false, nullsFirst: false })
+          .limit(5)
+
+        if (error) throw error
+        setVendors(data || [])
+      } catch (error) {
+        console.error('Error fetching vendors:', error)
+      } finally {
+        setLoadingVendors(false)
+      }
+    }
+
+    fetchVendors()
+  }, [])
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -87,36 +110,12 @@ export const Dashboard = () => {
     overdue: task.due_date ? new Date(task.due_date) < new Date() : false
   }))
 
-  // Fetch vendors on component mount
-  useEffect(() => {
-    const fetchVendors = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('vendors')
-          .select('*')
-          .eq('is_preferred', true)
-          .order('rating', { ascending: false, nullsFirst: false })
-          .limit(5)
-
-        if (error) throw error
-        setVendors(data || [])
-      } catch (error) {
-        console.error('Error fetching vendors:', error)
-      } finally {
-        setLoadingVendors(false)
-      }
-    }
-
-    fetchVendors()
-  }, [])
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back, Agent!</h2>
         <p className="text-muted-foreground">Here's what's happening with your real estate business today.</p>
       </div>
-
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
