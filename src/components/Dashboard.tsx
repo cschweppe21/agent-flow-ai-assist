@@ -39,7 +39,6 @@ export const Dashboard = () => {
   const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
-  const [showCommissionDashboard, setShowCommissionDashboard] = useState(false)
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null)
   const [selectedVendor, setSelectedVendor] = useState<any>(null)
   const [vendors, setVendors] = useState<any[]>([])
@@ -209,7 +208,7 @@ export const Dashboard = () => {
         <div className="space-y-6">
           {/* Client Overview Tool */}
           <Card className="shadow-card bg-gradient-card border-border/50 cursor-pointer hover-scale" 
-                onClick={() => setShowCommissionDashboard(true)}>
+                onClick={() => navigate('/clients')}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center text-foreground text-lg">
                 <Users className="h-4 w-4 mr-2 text-primary" />
@@ -329,16 +328,6 @@ export const Dashboard = () => {
       {activeChart === 'market' && (
         <DaysOnMarketChart listings={listings} onClose={() => setActiveChart(null)} />
       )}
-
-      {/* Commission Dashboard */}
-      <CommissionDashboard 
-        isOpen={showCommissionDashboard}
-        onClose={() => setShowCommissionDashboard(false)}
-        commissions={commissions}
-        listings={listings}
-        buyers={buyers}
-        metrics={metrics}
-      />
 
       {/* Buyer Profile */}
       {selectedBuyer && (
