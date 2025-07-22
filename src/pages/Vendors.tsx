@@ -270,19 +270,9 @@ const Vendors = () => {
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="mr-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-foreground mb-2">Professional Vendors</h1>
-                <p className="text-muted-foreground">Manage your trusted network of real estate professionals</p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Professional Vendors</h1>
+              <p className="text-muted-foreground">Manage your trusted network of real estate professionals</p>
             </div>
             
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>

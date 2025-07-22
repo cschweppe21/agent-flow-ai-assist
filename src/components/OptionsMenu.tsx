@@ -1,6 +1,7 @@
 
-import { Settings, Sun, Moon, Monitor, Check } from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Check, LogOut } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,6 +14,7 @@ import {
 
 export const OptionsMenu = () => {
   const { theme, setTheme } = useTheme();
+  const { signOut } = useAuth();
 
   const themeOptions = [
     { value: "light", label: "Light", icon: Sun },
@@ -80,6 +82,16 @@ export const OptionsMenu = () => {
           className="text-muted-foreground cursor-not-allowed"
         >
           About
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator className="bg-border" />
+        
+        <DropdownMenuItem 
+          onClick={signOut}
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
