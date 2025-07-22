@@ -2,13 +2,15 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/AuthProvider";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Bell, Menu, Home } from "lucide-react";
 import { OptionsMenu } from "@/components/OptionsMenu";
 
 export const Header = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
   const roleBadgeVariants = {
     free: 'secondary' as const,
     pro: 'default' as const,
@@ -47,9 +49,11 @@ export const Header = () => {
             
             <OptionsMenu />
             
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => navigate('/')} title="Home">
-              <Home className="h-5 w-5" />
-            </Button>
+            {!isHomePage && (
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => navigate('/')} title="Home">
+                <Home className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
       </div>
