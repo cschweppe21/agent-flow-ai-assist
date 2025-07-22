@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Phone, Mail, Globe, Star, MapPin, Edit, Save, X } from "lucide-react"
+import { Phone, Mail, Globe, Star, MapPin, Edit, Save, X, Trash2 } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 
@@ -34,6 +34,7 @@ interface VendorProfileProps {
   onClose: () => void
   onSave: (vendor: Vendor) => void
   onContact: (vendor: Vendor) => void
+  onDelete: (vendorId: string) => void
 }
 
 const vendorCategories = [
@@ -48,7 +49,7 @@ const vendorCategories = [
   'other'
 ]
 
-export const VendorProfile = ({ vendor, isOpen, onClose, onSave, onContact }: VendorProfileProps) => {
+export const VendorProfile = ({ vendor, isOpen, onClose, onSave, onContact, onDelete }: VendorProfileProps) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editedVendor, setEditedVendor] = useState<Vendor>(vendor)
   const [saving, setSaving] = useState(false)
@@ -96,6 +97,38 @@ export const VendorProfile = ({ vendor, isOpen, onClose, onSave, onContact }: Ve
   const handleCancel = () => {
     setEditedVendor(vendor)
     setIsEditing(false)
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this vendor? This action cannot be undone.')) {
+      return
+    }
+
+    setSaving(true)
+    try {
+      const { error } = await supabase
+        .from('vendors')
+        .delete()
+        .eq('id', vendor.id)
+
+      if (error) throw error
+
+      onDelete(vendor.id)
+      onClose()
+      toast({
+        title: "Vendor Deleted",
+        description: "Vendor has been permanently deleted.",
+      })
+    } catch (error) {
+      console.error('Error deleting vendor:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete vendor.",
+        variant: "destructive"
+      })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const displayName = editedVendor.business_name || editedVendor.name
@@ -359,23 +392,31 @@ export const VendorProfile = ({ vendor, isOpen, onClose, onSave, onContact }: Ve
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-2 pt-4 border-t">
-          {isEditing ? (
-            <>
-              <Button variant="outline" onClick={handleCancel} disabled={saving}>
-                <X className="h-4 w-4 mr-1" />
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                <Save className="h-4 w-4 mr-1" />
-                {saving ? "Saving..." : "Save Changes"}
-              </Button>
-            </>
-          ) : (
-            <Button variant="outline" onClick={onClose}>
-              Close
+        <div className="flex justify-between pt-4 border-t">
+          {isEditing && (
+            <Button variant="destructive" onClick={handleDelete} disabled={saving}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete Vendor
             </Button>
           )}
+          <div className="flex space-x-2 ml-auto">
+            {isEditing ? (
+              <>
+                <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                  <Save className="h-4 w-4 mr-1" />
+                  {saving ? "Saving..." : "Save Changes"}
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

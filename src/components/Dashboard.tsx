@@ -370,6 +370,10 @@ export const Dashboard = () => {
               window.open(`tel:${vendor.phone}`, '_self')
             }
           }}
+          onDelete={(vendorId) => {
+            setVendors(vendors.filter(v => v.id !== vendorId))
+            setSelectedVendor(null)
+          }}
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { VendorCard } from "@/components/VendorCard"
 import { VendorProfile } from "@/components/VendorProfile"
@@ -28,6 +29,7 @@ import {
   Calculator,
   Home,
   Star,
+  ArrowLeft,
   Sparkles
 } from "lucide-react"
 
@@ -94,6 +96,7 @@ const vendorCategories = [
 
 const Vendors = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [vendors, setVendors] = useState<Vendor[]>([])
   const [filteredVendors, setFilteredVendors] = useState<Vendor[]>([])
   const [loading, setLoading] = useState(true)
@@ -267,9 +270,19 @@ const Vendors = () => {
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Professional Vendors</h1>
-              <p className="text-muted-foreground">Manage your trusted network of real estate professionals</p>
+            <div className="flex items-center">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+                className="mr-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Professional Vendors</h1>
+                <p className="text-muted-foreground">Manage your trusted network of real estate professionals</p>
+              </div>
             </div>
             
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
@@ -615,6 +628,10 @@ const Vendors = () => {
               if (vendor.phone) {
                 window.open(`tel:${vendor.phone}`, '_self')
               }
+            }}
+            onDelete={(vendorId) => {
+              setVendors(prev => prev.filter(v => v.id !== vendorId))
+              setSelectedVendor(null)
             }}
           />
         )}
