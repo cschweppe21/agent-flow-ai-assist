@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
 import { 
   User, 
@@ -23,7 +24,9 @@ import {
   Calendar,
   Target,
   TrendingUp,
-  Building
+  Building,
+  CheckCircle,
+  XCircle
 } from "lucide-react"
 import { Buyer } from "./BuyerCard"
 
@@ -52,6 +55,13 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState<Buyer>(buyer)
   const [activeTab, setActiveTab] = useState("profile")
+  const [showCloseDialog, setShowCloseDialog] = useState(false)
+  const [closeFormData, setCloseFormData] = useState({
+    finalCommission: '',
+    dealCompleted: true,
+    transactionDate: new Date().toISOString().split('T')[0],
+    finalNotes: ''
+  })
   const { toast } = useToast()
 
   // Generate recommended properties based on buyer preferences
@@ -169,6 +179,23 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
     return 'Budget not specified'
   }
 
+  const handleCloseBuyer = () => {
+    const updatedBuyer = { 
+      ...formData, 
+      status: closeFormData.dealCompleted ? 'closed' as const : 'inactive' as const,
+      notes: `${formData.notes || ''}\n\nClosed ${new Date().toLocaleDateString()}: ${closeFormData.finalNotes}`.trim()
+    }
+    
+    setFormData(updatedBuyer)
+    onSave?.(updatedBuyer)
+    setShowCloseDialog(false)
+    
+    toast({
+      title: closeFormData.dealCompleted ? "Buyer Closed Successfully" : "Buyer Profile Closed",
+      description: `Profile has been moved to previous clients with ${closeFormData.dealCompleted ? 'successful transaction' : 'no transaction'}.`,
+    })
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
@@ -183,33 +210,14 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
                 {formData.status.replace('_', ' ').toUpperCase()}
               </Badge>
               {!isEditing && (
-                <>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    <Edit3 className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  {formData.status === 'active' && (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => {
-                        const updatedBuyer = { ...formData, status: 'closed' as const }
-                        setFormData(updatedBuyer)
-                        onSave?.(updatedBuyer)
-                        toast({
-                          title: "Buyer Closed",
-                          description: "Buyer profile has been moved to previous clients.",
-                        })
-                      }}
-                    >
-                      Close Profile
-                    </Button>
-                  )}
-                </>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsEditing(true)}
+                >
+                  <Edit3 className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
               )}
             </div>
           </DialogTitle>
@@ -702,7 +710,119 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Close Profile Button - Always at bottom */}
+      {formData.status === 'active' && (
+        <div className="mt-6 pt-4 border-t border-border">
+          <div className="flex justify-center">
+            <Button 
+              variant="destructive" 
+              onClick={() => setShowCloseDialog(true)}
+              className="px-8"
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Close Profile
+            </Button>
+          </div>
+        </div>
+      )}
       </DialogContent>
+
+      {/* Close Profile Dialog */}
+      <Dialog open={showCloseDialog} onOpenChange={setShowCloseDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <CheckCircle className="h-5 w-5 mr-2 text-primary" />
+              Close Buyer Profile
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              Closing <strong>{formData.name}</strong>'s profile. This will move them to your previous clients list.
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="dealCompleted"
+                  checked={closeFormData.dealCompleted}
+                  onCheckedChange={(checked) => 
+                    setCloseFormData(prev => ({ ...prev, dealCompleted: !!checked }))
+                  }
+                />
+                <Label htmlFor="dealCompleted" className="text-sm font-medium">
+                  Deal completed successfully
+                </Label>
+              </div>
+
+              {closeFormData.dealCompleted && (
+                <div>
+                  <Label htmlFor="finalCommission">Final Commission Amount</Label>
+                  <Input
+                    id="finalCommission"
+                    type="number"
+                    placeholder="e.g., 15000"
+                    value={closeFormData.finalCommission}
+                    onChange={(e) => setCloseFormData(prev => ({ 
+                      ...prev, 
+                      finalCommission: e.target.value 
+                    }))}
+                    className="mt-1"
+                  />
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="transactionDate">
+                  {closeFormData.dealCompleted ? 'Transaction Date' : 'Date Closed'}
+                </Label>
+                <Input
+                  id="transactionDate"
+                  type="date"
+                  value={closeFormData.transactionDate}
+                  onChange={(e) => setCloseFormData(prev => ({ 
+                    ...prev, 
+                    transactionDate: e.target.value 
+                  }))}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="finalNotes">Final Notes</Label>
+                <Textarea
+                  id="finalNotes"
+                  placeholder="Add any final notes about this client..."
+                  value={closeFormData.finalNotes}
+                  onChange={(e) => setCloseFormData(prev => ({ 
+                    ...prev, 
+                    finalNotes: e.target.value 
+                  }))}
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCloseDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCloseBuyer}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                {closeFormData.dealCompleted ? 'Complete & Close' : 'Close Profile'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   )
 }

@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Header } from "@/components/Header"
 import { FloatingAIButton } from "@/components/FloatingAIButton"
 import { useMockDashboardData } from "@/hooks/useMockDashboardData"
+import { useToast } from "@/hooks/use-toast"
 import { 
   ArrowLeft, 
   MapPin, 
@@ -18,6 +19,7 @@ import {
   FileText, 
   Heart, 
   CheckCircle2,
+  CheckCircle,
   Clock,
   AlertTriangle,
   Plus
@@ -26,6 +28,7 @@ import {
 const ListingDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { toast } = useToast()
   const { listings, tasks } = useMockDashboardData()
   
   const [listingNotes, setListingNotes] = useState("Property has great natural light and needs minor cosmetic updates. Seller is motivated.")
@@ -126,19 +129,6 @@ const ListingDetail = () => {
               <Badge className={statusStyles[listing.status]}>
                 {statusLabels[listing.status]}
               </Badge>
-              {listing.status === 'active' && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    // Update listing status to closed/sold
-                    // This would need to be connected to your data update function
-                    navigate('/clients')
-                  }}
-                >
-                  Close Listing
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -318,6 +308,30 @@ const ListingDetail = () => {
             )}
           </div>
         </div>
+
+        {/* Close Listing Button - Always at bottom */}
+        {listing.status === 'active' && (
+          <div className="mt-8 pt-6 border-t border-border">
+            <div className="flex justify-center">
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  // In a real app, this would open a similar dialog to the buyer profile
+                  // For now, just navigate to clients page
+                  toast({
+                    title: "Listing Closed",
+                    description: "Listing has been moved to previous clients.",
+                  })
+                  navigate('/clients')
+                }}
+                className="px-8"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Close Listing
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
       <FloatingAIButton />
     </div>
