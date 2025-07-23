@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/components/AuthProvider"
 import { useToast } from "@/hooks/use-toast"
+import { useMockDashboardData } from "@/hooks/useMockDashboardData"
 import { 
   Users, 
   DollarSign, 
@@ -61,10 +62,10 @@ const ClientOverview = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { buyers, listings } = useMockDashboardData()
   
   const [activeTab, setActiveTab] = useState("overview")
   const [commissions, setCommissions] = useState<Commission[]>([])
-  const [previousClients, setPreviousClients] = useState<PreviousClient[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterType, setFilterType] = useState<'all' | 'buyer' | 'seller'>('all')
   const [loading, setLoading] = useState(true)
@@ -72,8 +73,8 @@ const ClientOverview = () => {
   useEffect(() => {
     if (user) {
       fetchCommissions()
-      fetchPreviousClients()
     }
+    setLoading(false)
   }, [user])
 
   const fetchCommissions = async () => {
@@ -98,57 +99,34 @@ const ClientOverview = () => {
     }
   }
 
-  const fetchPreviousClients = async () => {
-    try {
-      // Create mock data for previous clients based on closed listings and buyers
-      const { data: listings, error: listingsError } = await supabase
-        .from('listings')
-        .select('*')
-        .in('status', ['sold', 'withdrawn'])
+  // Get closed buyers and listings from actual data
+  const closedBuyers = buyers.filter(buyer => buyer.status === 'closed').map(buyer => ({
+    id: `buyer-${buyer.id}`,
+    name: buyer.name,
+    email: buyer.email,
+    phone: buyer.phone,
+    client_type: 'buyer' as const,
+    property_address: 'Various Properties',
+    transaction_date: buyer.updated_at || buyer.created_at,
+    commission_amount: buyer.budget_max ? Math.round(buyer.budget_max * 0.025) : undefined, // 2.5% estimate
+    status: 'closed' as const,
+    notes: buyer.notes
+  }))
 
-      const { data: buyers, error: buyersError } = await supabase
-        .from('buyers')
-        .select('*')
-        .in('status', ['closed', 'inactive'])
+  const closedListings = listings.filter(listing => listing.status === 'sold').map(listing => ({
+    id: `listing-${listing.id}`,
+    name: 'Property Seller',
+    client_type: 'seller' as const,
+    property_address: listing.address,
+    transaction_date: listing.sale_date || listing.listing_date,
+    commission_amount: Math.round(listing.price * 0.03), // 3% commission estimate
+    status: 'closed' as const,
+    notes: listing.description
+  }))
 
-      if (listingsError) throw listingsError
-      if (buyersError) throw buyersError
-
-      // Convert to previous clients format
-      const sellerClients: PreviousClient[] = (listings || []).map(listing => ({
-        id: `listing-${listing.id}`,
-        name: "Property Seller", // In real app, this would come from a client table
-        client_type: 'seller' as const,
-        property_address: listing.address,
-        transaction_date: listing.sale_date || listing.updated_at,
-        commission_amount: Math.round(listing.price * 0.03), // 3% commission estimate
-        status: listing.status === 'sold' ? 'closed' as const : 'canceled' as const,
-        notes: listing.description
-      }))
-
-      const buyerClients: PreviousClient[] = (buyers || []).map(buyer => ({
-        id: `buyer-${buyer.id}`,
-        name: buyer.name,
-        email: buyer.email,
-        phone: buyer.phone,
-        client_type: 'buyer' as const,
-        transaction_date: buyer.updated_at,
-        status: buyer.status === 'closed' ? 'closed' as const : 'canceled' as const,
-        notes: buyer.notes
-      }))
-
-      setPreviousClients([...sellerClients, ...buyerClients])
-    } catch (error) {
-      console.error('Error fetching previous clients:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load client data.",
-        variant: "destructive"
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  const previousClients = [...closedBuyers, ...closedListings].sort((a, b) => 
+    new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
+  )
 
   // Calculate commission metrics
   const currentYear = new Date().getFullYear()
@@ -190,15 +168,16 @@ const ClientOverview = () => {
 
   // Filter previous clients
   const filteredClients = previousClients.filter(client => {
-    const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.property_address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         client.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    const searchLower = searchTerm.toLowerCase()
+    const matchesSearch = client.name.toLowerCase().includes(searchLower) ||
+                         client.property_address?.toLowerCase().includes(searchLower) ||
+                         (client.client_type === 'buyer' && client.email?.toLowerCase().includes(searchLower))
     const matchesType = filterType === 'all' || client.client_type === filterType
     return matchesSearch && matchesType
   })
 
-  const closedClients = filteredClients.filter(c => c.status === 'closed')
-  const canceledClients = filteredClients.filter(c => c.status === 'canceled')
+  const closedClients = filteredClients
+  const canceledClients: PreviousClient[] = [] // All our data is closed, no canceled data yet
 
   if (loading) {
     return (
@@ -486,12 +465,12 @@ const ClientOverview = () => {
                         </p>
                       )}
                       
-                      {(client.email || client.phone) && (
-                        <div className="flex space-x-4 text-xs text-muted-foreground mb-2">
-                          {client.email && <span>✉️ {client.email}</span>}
-                          {client.phone && <span>📞 {client.phone}</span>}
-                        </div>
-                      )}
+                       {(client.client_type === 'buyer' && (client.email || client.phone)) && (
+                         <div className="flex space-x-4 text-xs text-muted-foreground mb-2">
+                           {client.email && <span>✉️ {client.email}</span>}
+                           {client.phone && <span>📞 {client.phone}</span>}
+                         </div>
+                       )}
                       
                       <p className="text-xs text-muted-foreground">
                         Transaction Date: {new Date(client.transaction_date).toLocaleDateString()}

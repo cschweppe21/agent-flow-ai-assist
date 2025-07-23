@@ -183,14 +183,33 @@ export const BuyerProfile = ({ buyer, isOpen, onClose, onSave, onContact }: Buye
                 {formData.status.replace('_', ' ').toUpperCase()}
               </Badge>
               {!isEditing && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                >
-                  <Edit3 className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Edit3 className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  {formData.status === 'active' && (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => {
+                        const updatedBuyer = { ...formData, status: 'closed' as const }
+                        setFormData(updatedBuyer)
+                        onSave?.(updatedBuyer)
+                        toast({
+                          title: "Buyer Closed",
+                          description: "Buyer profile has been moved to previous clients.",
+                        })
+                      }}
+                    >
+                      Close Profile
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           </DialogTitle>

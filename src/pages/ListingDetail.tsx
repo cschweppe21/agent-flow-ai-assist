@@ -122,9 +122,24 @@ const ListingDetail = () => {
                 </div>
               </div>
             </div>
-            <Badge className={statusStyles[listing.status]}>
-              {statusLabels[listing.status]}
-            </Badge>
+            <div className="flex items-center space-x-2">
+              <Badge className={statusStyles[listing.status]}>
+                {statusLabels[listing.status]}
+              </Badge>
+              {listing.status === 'active' && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    // Update listing status to closed/sold
+                    // This would need to be connected to your data update function
+                    navigate('/clients')
+                  }}
+                >
+                  Close Listing
+                </Button>
+              )}
+            </div>
           </div>
         </div>
 
