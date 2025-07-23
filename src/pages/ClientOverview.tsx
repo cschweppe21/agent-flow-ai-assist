@@ -128,25 +128,47 @@ const ClientOverview = () => {
     new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
   )
 
-  // Calculate commission metrics
+  // Calculate commission metrics from closed clients data
   const currentYear = new Date().getFullYear()
-  const ytdCommissions = commissions.filter(c => 
-    new Date(c.date_earned).getFullYear() === currentYear
+  
+  // Get commissions from closed clients
+  const closedBuyersThisYear = closedBuyers.filter(buyer => 
+    new Date(buyer.transaction_date).getFullYear() === currentYear
+  )
+  const closedListingsThisYear = closedListings.filter(listing => 
+    new Date(listing.transaction_date).getFullYear() === currentYear
   )
 
-  const listingCommissions = ytdCommissions.filter(c => c.commission_type === 'listing')
-  const buyingCommissions = ytdCommissions.filter(c => c.commission_type === 'buying')
+  const listingCommissionsFromClients = closedListingsThisYear.map(listing => ({
+    id: listing.id,
+    amount: listing.commission_amount || 0,
+    date_earned: listing.transaction_date,
+    commission_type: 'listing' as const,
+    description: `Commission from ${listing.property_address}`
+  }))
+
+  const buyingCommissionsFromClients = closedBuyersThisYear.map(buyer => ({
+    id: buyer.id,
+    amount: buyer.commission_amount || 0,
+    date_earned: buyer.transaction_date,
+    commission_type: 'buying' as const,
+    description: `Commission from ${buyer.name}`
+  }))
+
+  // Combine all commissions from closed clients
+  const allCommissionsFromClients = [...listingCommissionsFromClients, ...buyingCommissionsFromClients]
   
-  const listingTotal = listingCommissions.reduce((sum, c) => sum + c.amount, 0)
-  const buyingTotal = buyingCommissions.reduce((sum, c) => sum + c.amount, 0)
+  const listingTotal = listingCommissionsFromClients.reduce((sum, c) => sum + c.amount, 0)
+  const buyingTotal = buyingCommissionsFromClients.reduce((sum, c) => sum + c.amount, 0)
   const totalCommissions = listingTotal + buyingTotal
 
-  // Monthly chart data for past 12 months
+  // Monthly chart data for past 12 months using closed clients data
   const monthlyData = []
   for (let i = 11; i >= 0; i--) {
     const date = new Date()
     date.setMonth(date.getMonth() - i)
-    const monthCommissions = commissions.filter(c => {
+    
+    const monthCommissions = allCommissionsFromClients.filter(c => {
       const commDate = new Date(c.date_earned)
       return commDate.getMonth() === date.getMonth() && 
              commDate.getFullYear() === date.getFullYear()
@@ -265,7 +287,7 @@ const ClientOverview = () => {
                 ${listingTotal.toLocaleString()}
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                {listingCommissions.length} transactions
+                {listingCommissionsFromClients.length} transactions
               </p>
             </CardContent>
           </Card>
@@ -282,7 +304,7 @@ const ClientOverview = () => {
                 ${buyingTotal.toLocaleString()}
               </div>
               <p className="text-sm text-muted-foreground mt-1">
-                {buyingCommissions.length} transactions
+                {buyingCommissionsFromClients.length} transactions
               </p>
             </CardContent>
           </Card>
@@ -529,7 +551,7 @@ const ClientOverview = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 max-h-96 overflow-y-auto">
-                  {ytdCommissions.slice(0, 8).map((commission) => (
+                  {allCommissionsFromClients.slice(0, 8).map((commission) => (
                     <div key={commission.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
                       <div>
                         <p className="font-medium text-sm text-foreground">
@@ -554,7 +576,7 @@ const ClientOverview = () => {
                       </div>
                     </div>
                   ))}
-                  {ytdCommissions.length === 0 && (
+                  {allCommissionsFromClients.length === 0 && (
                     <div className="text-center py-8">
                       <DollarSign className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                       <p className="text-muted-foreground">No transactions yet this year</p>
@@ -573,12 +595,12 @@ const ClientOverview = () => {
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Total Transactions</span>
-                    <span className="font-semibold text-foreground">{ytdCommissions.length}</span>
+                    <span className="font-semibold text-foreground">{allCommissionsFromClients.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Avg. Commission</span>
                     <span className="font-semibold text-foreground">
-                      ${Math.round(totalCommissions / ytdCommissions.length || 0).toLocaleString()}
+                      ${Math.round(totalCommissions / allCommissionsFromClients.length || 0).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
