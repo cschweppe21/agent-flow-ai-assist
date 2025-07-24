@@ -78,7 +78,7 @@ export const AddTaskModal = ({ isOpen, onClose, onTaskAdded, selectedDate }: Add
   const getPriorityColor = (priorityValue: string) => {
     switch (priorityValue) {
       case 'high': return 'border-red-500 bg-red-50 text-red-700'
-      case 'medium': return 'border-yellow-500 bg-yellow-50 text-yellow-700'
+      case 'medium': return 'border-warning bg-warning/10 text-warning'
       case 'low': return 'border-green-500 bg-green-50 text-green-700'
       default: return 'border-gray-500 bg-gray-50 text-gray-700'
     }

@@ -248,7 +248,7 @@ export const Dashboard = () => {
                           </div>
                           {vendor.rating && (
                             <div className="flex items-center">
-                              <Star className="h-3 w-3 text-yellow-500 fill-current" />
+                              <Star className="h-3 w-3 text-warning fill-current" />
                               <span className="text-xs ml-1">{vendor.rating.toFixed(1)}</span>
                             </div>
                           )}
