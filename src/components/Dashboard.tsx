@@ -29,6 +29,7 @@ import {
   Phone,
   Star
 } from "lucide-react"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { AIModal } from "@/components/AIModal"
 import { BuyerProfile } from "@/components/BuyerProfile"
 import { VendorCard } from "@/components/VendorCard"
@@ -43,6 +44,7 @@ export const Dashboard = () => {
   const [selectedVendor, setSelectedVendor] = useState<any>(null)
   const [vendors, setVendors] = useState<any[]>([])
   const [loadingVendors, setLoadingVendors] = useState(true)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
   const navigate = useNavigate()
 
   // Fetch vendors on component mount - moved before early returns
@@ -214,6 +216,24 @@ export const Dashboard = () => {
                   Click for details
                 </Badge>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Calendar */}
+          <Card className="shadow-card bg-gradient-card border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-foreground text-lg">
+                <Calendar className="h-4 w-4 mr-2 text-primary" />
+                Calendar
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="p-3 pointer-events-auto"
+              />
             </CardContent>
           </Card>
 
