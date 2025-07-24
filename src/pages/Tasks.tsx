@@ -27,10 +27,11 @@ interface TaskCount {
 }
 
 const Tasks = () => {
-  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [taskCounts, setTaskCounts] = useState<TaskCount[]>([])
   const [allTasks, setAllTasks] = useState<Task[]>([])
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([])
+  const [dailyTasks, setDailyTasks] = useState<Task[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all')
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all')
@@ -112,6 +113,25 @@ const Tasks = () => {
     }
   }
 
+  const fetchDailyTasks = async (date: string) => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('due_date', date)
+        .order('completed', { ascending: true })
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setDailyTasks(data || [])
+    } catch (error) {
+      console.error('Error fetching daily tasks:', error)
+    }
+  }
+
   const toggleTask = async (taskId: string, completed: boolean) => {
     try {
       const { error } = await supabase
@@ -122,6 +142,11 @@ const Tasks = () => {
       if (error) throw error
 
       setAllTasks(tasks => 
+        tasks.map(task => 
+          task.id === taskId ? { ...task, completed } : task
+        )
+      )
+      setDailyTasks(tasks => 
         tasks.map(task => 
           task.id === taskId ? { ...task, completed } : task
         )
@@ -147,6 +172,7 @@ const Tasks = () => {
       if (error) throw error
 
       setAllTasks(tasks => tasks.filter(task => task.id !== taskId))
+      setDailyTasks(tasks => tasks.filter(task => task.id !== taskId))
       fetchTaskCounts()
       
       toast({
@@ -222,8 +248,9 @@ const Tasks = () => {
     if (user) {
       fetchTaskCounts()
       fetchAllTasks()
+      fetchDailyTasks(selectedDate)
     }
-  }, [user, currentMonth])
+  }, [user, currentMonth, selectedDate])
 
   useEffect(() => {
     filterTasks()
@@ -351,7 +378,10 @@ const Tasks = () => {
                           ${isToday(date) ? 'bg-primary/20 border border-primary/30' : 'bg-background/50'}
                           ${!isCurrentMonth ? 'opacity-30' : ''}
                         `}
-                        onClick={() => setSelectedDate(dateStr)}
+                        onClick={() => {
+                          setSelectedDate(dateStr)
+                          fetchDailyTasks(dateStr)
+                        }}
                       >
                         <span className={`font-medium ${isToday(date) ? 'text-primary' : 'text-foreground'}`}>
                           {date.getDate()}
@@ -367,12 +397,16 @@ const Tasks = () => {
             </Card>
           </div>
 
-          {/* All Tasks */}
+          {/* Daily Tasks for Selected Date */}
           <div className="lg:col-span-2">
             <Card className="shadow-card bg-gradient-card border-border/50">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-foreground text-lg">
-                  <span>All Tasks</span>
+                  <span>Tasks for {new Date(selectedDate).toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
                   <Button
                     onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
                     className="ml-auto"
@@ -420,14 +454,14 @@ const Tasks = () => {
                 </div>
 
                 {/* Task List */}
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="space-y-3">
                   {loading ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
                       <p className="text-muted-foreground">Loading tasks...</p>
                     </div>
-                  ) : filteredTasks.length > 0 ? (
-                    filteredTasks.map((task) => (
+                  ) : dailyTasks.length > 0 ? (
+                    dailyTasks.map((task) => (
                       <div key={task.id} className="flex items-start gap-3 p-4 bg-background/50 rounded-lg border border-border/50">
                         <Checkbox
                           checked={task.completed}
@@ -466,13 +500,7 @@ const Tasks = () => {
                   ) : (
                     <div className="text-center py-8">
                       <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-2">No tasks found</p>
-                      <p className="text-sm text-muted-foreground">
-                        {searchTerm || filterStatus !== 'all' || filterPriority !== 'all' 
-                          ? 'Try adjusting your filters or search term'
-                          : 'Click "Add Task" to create your first task'
-                        }
-                      </p>
+                      <p className="text-muted-foreground">No tasks scheduled for this date</p>
                     </div>
                   )}
                 </div>
@@ -480,20 +508,107 @@ const Tasks = () => {
             </Card>
           </div>
         </div>
-      </div>
 
-      {/* Day Tasks Modal */}
-      {selectedDate && (
-        <DayTasksModal
-          date={selectedDate}
-          isOpen={!!selectedDate}
-          onClose={() => setSelectedDate(null)}
-          onTasksUpdated={() => {
-            fetchTaskCounts()
-            fetchAllTasks()
-          }}
-        />
-      )}
+        {/* All Tasks Section */}
+        <div className="mt-8">
+          <Card className="shadow-card bg-gradient-card border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-foreground text-lg">
+                All Tasks
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value as any)}
+                    className="px-3 py-2 border border-border rounded-md bg-background text-foreground text-sm"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                  <select
+                    value={filterPriority}
+                    onChange={(e) => setFilterPriority(e.target.value as any)}
+                    className="px-3 py-2 border border-border rounded-md bg-background text-foreground text-sm"
+                  >
+                    <option value="all">All Priority</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Task List */}
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p className="text-muted-foreground">Loading tasks...</p>
+                  </div>
+                ) : filteredTasks.length > 0 ? (
+                  filteredTasks.map((task) => (
+                    <div key={task.id} className="flex items-start gap-3 p-4 bg-background/50 rounded-lg border border-border/50">
+                      <Checkbox
+                        checked={task.completed}
+                        onCheckedChange={(checked) => toggleTask(task.id, !!checked)}
+                        className="mt-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`font-medium truncate ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                            {task.title}
+                          </span>
+                          <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </Badge>
+                        </div>
+                        {task.description && (
+                          <p className={`text-sm mb-2 ${task.completed ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
+                            {task.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>Due: {formatDate(task.due_date)}</span>
+                          <span>Created: {formatDate(task.created_at)}</span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteTask(task.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No tasks found</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
