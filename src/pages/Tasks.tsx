@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Calendar, Plus, Bot, Loader2, Check, X, Filter, Search, Clock } from "lucide-react"
+import { Calendar, Plus, Bot, Loader2, Check, X, Filter, Search, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { DayTasksModal } from "@/components/DayTasksModal"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/components/AuthProvider"
@@ -35,30 +35,34 @@ const Tasks = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'completed'>('all')
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all')
   const [loading, setLoading] = useState(true)
+  const [currentMonth, setCurrentMonth] = useState(new Date())
   const { user } = useAuth()
   const { toast } = useToast()
 
-  const getWeekDates = () => {
-    const today = new Date()
-    const currentDay = today.getDay()
-    const startOfWeek = new Date(today)
-    startOfWeek.setDate(today.getDate() - currentDay)
+  const getMonthDates = () => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const startDate = new Date(firstDay)
+    startDate.setDate(startDate.getDate() - firstDay.getDay())
     
-    const weekDates = []
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek)
-      date.setDate(startOfWeek.getDate() + i)
-      weekDates.push(date)
+    const monthDates = []
+    const endDate = new Date(lastDay)
+    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()))
+    
+    for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+      monthDates.push(new Date(date))
     }
-    return weekDates
+    return monthDates
   }
 
   const fetchTaskCounts = async () => {
     if (!user) return
 
-    const weekDates = getWeekDates()
-    const startDate = weekDates[0].toISOString().split('T')[0]
-    const endDate = weekDates[6].toISOString().split('T')[0]
+    const monthDates = getMonthDates()
+    const startDate = monthDates[0].toISOString().split('T')[0]
+    const endDate = monthDates[monthDates.length - 1].toISOString().split('T')[0]
 
     try {
       const { data, error } = await supabase
@@ -71,7 +75,7 @@ const Tasks = () => {
 
       if (error) throw error
 
-      const counts: TaskCount[] = weekDates.map(date => {
+      const counts: TaskCount[] = monthDates.map(date => {
         const dateStr = date.toISOString().split('T')[0]
         const count = data?.filter(task => task.due_date === dateStr).length || 0
         return { date: dateStr, count }
@@ -214,31 +218,34 @@ const Tasks = () => {
     })
   }
 
-  const isOverdue = (dateStr: string | undefined) => {
-    if (!dateStr) return false
-    const taskDate = new Date(dateStr)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return taskDate < today
-  }
-
   useEffect(() => {
     if (user) {
       fetchTaskCounts()
       fetchAllTasks()
     }
-  }, [user])
+  }, [user, currentMonth])
 
   useEffect(() => {
     filterTasks()
   }, [allTasks, searchTerm, filterStatus, filterPriority])
 
-  const weekDates = getWeekDates()
+  const monthDates = getMonthDates()
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   const pendingTasks = allTasks.filter(t => !t.completed).length
   const completedTasks = allTasks.filter(t => t.completed).length
-  const overdueTasks = allTasks.filter(t => !t.completed && isOverdue(t.due_date)).length
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => {
+      const newMonth = new Date(prev)
+      if (direction === 'prev') {
+        newMonth.setMonth(newMonth.getMonth() - 1)
+      } else {
+        newMonth.setMonth(newMonth.getMonth() + 1)
+      }
+      return newMonth
+    })
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -251,7 +258,7 @@ const Tasks = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="shadow-card bg-gradient-card border-border/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -287,67 +294,70 @@ const Tasks = () => {
               </div>
             </CardContent>
           </Card>
-
-          <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Overdue</p>
-                  <p className="text-2xl font-bold text-red-600">{overdueTasks}</p>
-                </div>
-                <X className="h-8 w-8 text-red-600" />
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Weekly Calendar */}
+          {/* Monthly Calendar */}
           <div className="lg:col-span-1">
             <Card className="shadow-card bg-gradient-card border-border/50">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center text-foreground text-lg">
-                  <Calendar className="h-4 w-4 mr-2 text-primary" />
-                  This Week
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center text-foreground text-lg">
+                    <Calendar className="h-4 w-4 mr-2 text-primary" />
+                    {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </CardTitle>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateMonth('prev')}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateMonth('next')}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="grid grid-cols-1 gap-2">
-                  {weekDates.map((date, index) => {
+                {/* Day headers */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {dayNames.map(day => (
+                    <div key={day} className="text-center text-xs text-muted-foreground py-2">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+                {/* Month grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {monthDates.map((date) => {
                     const taskCount = getTaskCount(date)
                     const dateStr = date.toISOString().split('T')[0]
+                    const isCurrentMonth = date.getMonth() === currentMonth.getMonth()
                     
                     return (
                       <div
                         key={dateStr}
                         className={`
-                          p-3 cursor-pointer rounded-lg transition-all duration-200 flex items-center justify-between
-                          hover:bg-primary/10 hover:scale-[1.02]
+                          aspect-square p-1 cursor-pointer rounded-lg transition-all duration-200 flex flex-col items-center justify-center text-xs
+                          hover:bg-primary/10 hover:scale-105
                           ${isToday(date) ? 'bg-primary/20 border border-primary/30' : 'bg-background/50'}
+                          ${!isCurrentMonth ? 'opacity-30' : ''}
                         `}
                         onClick={() => setSelectedDate(dateStr)}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="text-center">
-                            <div className="text-xs text-muted-foreground">
-                              {dayNames[index]}
-                            </div>
-                            <div className="text-sm font-medium text-foreground">
-                              {date.getDate()}
-                            </div>
-                          </div>
-                          <div className="text-sm text-foreground">
-                            {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            {isToday(date) && <span className="text-primary ml-1">(Today)</span>}
-                          </div>
-                        </div>
+                        <span className={`font-medium ${isToday(date) ? 'text-primary' : 'text-foreground'}`}>
+                          {date.getDate()}
+                        </span>
                         {taskCount > 0 && (
-                          <Badge 
-                            variant="secondary" 
-                            className="text-xs bg-primary/10 text-primary"
-                          >
-                            {taskCount}
-                          </Badge>
+                          <div className="w-2 h-2 bg-primary rounded-full mt-1"></div>
                         )}
                       </div>
                     )
@@ -432,11 +442,6 @@ const Tasks = () => {
                             <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
                               {task.priority}
                             </Badge>
-                            {task.due_date && isOverdue(task.due_date) && !task.completed && (
-                              <Badge variant="destructive" className="text-xs">
-                                Overdue
-                              </Badge>
-                            )}
                           </div>
                           {task.description && (
                             <p className={`text-sm mb-2 ${task.completed ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
