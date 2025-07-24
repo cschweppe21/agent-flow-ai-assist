@@ -1,9 +1,6 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "@/components/Header"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/AppSidebar"
-import { SidebarOverlay } from "@/components/SidebarOverlay"
 import { VendorCard } from "@/components/VendorCard"
 import { VendorProfile } from "@/components/VendorProfile"
 import { Button } from "@/components/ui/button"
@@ -266,13 +263,10 @@ const Vendors = () => {
   const stats = getVendorStats()
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background relative">
-        <AppSidebar />
-        <SidebarOverlay />
-        <div className="flex-1 transition-all duration-300">
-          <Header />
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-background">
+      <Header />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -631,10 +625,8 @@ const Vendors = () => {
             }}
           />
         )}
-          </div>
-        </div>
       </div>
-    </SidebarProvider>
+    </div>
   )
 }
 
