@@ -4,6 +4,7 @@ import { AuthForm } from "@/components/AuthForm"
 import { useAuth } from "@/components/AuthProvider"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
+import { SidebarOverlay } from "@/components/SidebarOverlay"
 
 const Index = () => {
   const { isAuthenticated, isLoading } = useAuth()
@@ -25,9 +26,10 @@ const Index = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background relative">
         <AppSidebar />
-        <div className="flex-1">
+        <SidebarOverlay />
+        <div className="flex-1 transition-all duration-300">
           <Header />
           <Dashboard />
         </div>

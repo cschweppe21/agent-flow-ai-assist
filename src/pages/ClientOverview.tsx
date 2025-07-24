@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
+import { SidebarOverlay } from "@/components/SidebarOverlay"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -219,9 +220,10 @@ const ClientOverview = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-background relative">
         <AppSidebar />
-        <div className="flex-1">
+        <SidebarOverlay />
+        <div className="flex-1 transition-all duration-300">
           <Header />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}

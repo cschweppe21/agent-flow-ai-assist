@@ -22,7 +22,7 @@ export const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <SidebarTrigger className="text-white hover:bg-white/10" />
+            <SidebarTrigger className="text-white hover:bg-white/10 transition-all duration-200 hover-scale" />
             <div className="ml-4">
               <h1 className="text-xl font-bold text-white">SlipStream</h1>
               <p className="text-sm text-white/80">Glide Through Your Workflow</p>
