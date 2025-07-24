@@ -29,8 +29,8 @@ All colors MUST be HSL.
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 43 96% 56%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 213 94% 85%;
+    --accent-foreground: 213 94% 20%;
 
     /* Status colors for real estate */
     --success: 142 76% 36%;
@@ -103,8 +103,8 @@ All colors MUST be HSL.
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 43 96% 56%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 213 94% 25%;
+    --accent-foreground: 213 94% 85%;
 
     --success: 142 76% 36%;
     --success-foreground: 210 40% 98%;
