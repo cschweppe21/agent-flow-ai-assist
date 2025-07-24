@@ -9,7 +9,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider } from "@/components/AuthProvider";
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
-import TaskChecklist from "./pages/TaskChecklist";
+import Tasks from "./pages/Tasks";
 import ListingDetail from "./pages/ListingDetail";
 import Vendors from "./pages/Vendors";
 import ClientOverview from "./pages/ClientOverview";
@@ -33,7 +33,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/ai-assistant" element={<AIAssistant />} />
-              <Route path="/tasks" element={<TaskChecklist />} />
+              <Route path="/tasks" element={<Tasks />} />
               <Route path="/vendors" element={<Vendors />} />
               <Route path="/clients" element={<ClientOverview />} />
               <Route path="/listing/:id" element={<ListingDetail />} />
