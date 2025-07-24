@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar, Plus, Bot, Loader2, Check, X, Filter, Search, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { DayTasksModal } from "@/components/DayTasksModal"
+import { AddTaskModal } from "@/components/AddTaskModal"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/components/AuthProvider"
 import { useToast } from "@/hooks/use-toast"
@@ -37,6 +38,7 @@ const Tasks = () => {
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all')
   const [loading, setLoading] = useState(true)
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
 
@@ -187,6 +189,12 @@ const Tasks = () => {
         variant: "destructive"
       })
     }
+  }
+
+  const handleTaskAdded = () => {
+    fetchAllTasks()
+    fetchTaskCounts()
+    fetchDailyTasks(selectedDate)
   }
 
   const getPriorityColor = (priority: string) => {
@@ -408,7 +416,7 @@ const Tasks = () => {
                     day: 'numeric' 
                   })}</span>
                   <Button
-                    onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                    onClick={() => setShowAddTaskModal(true)}
                     className="ml-auto"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -608,6 +616,13 @@ const Tasks = () => {
             </CardContent>
           </Card>
         </div>
+
+        <AddTaskModal
+          isOpen={showAddTaskModal}
+          onClose={() => setShowAddTaskModal(false)}
+          onTaskAdded={handleTaskAdded}
+          selectedDate={selectedDate}
+        />
       </div>
     </div>
   )
