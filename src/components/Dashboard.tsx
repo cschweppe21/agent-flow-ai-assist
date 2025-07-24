@@ -151,35 +151,19 @@ export const Dashboard = () => {
             
             <div className="flex items-center space-x-3">
               {mainView === 'buyers' ? (
-                <>
-                  <AIModal initialMessage="I'd like help managing my buyer clients. Can you suggest strategies for finding properties that match their criteria?">
-                    <Button variant="outline" className="shadow-elevated">
-                      <Bot className="h-4 w-4 mr-2" />
-                      AI Buyer Assistant
-                    </Button>
-                  </AIModal>
-                  <SmartAddDialog type="buyer" onSuccess={() => window.location.reload()}>
-                    <Button variant="hero" className="shadow-elevated">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Buyer
-                    </Button>
-                  </SmartAddDialog>
-                </>
+                <SmartAddDialog type="buyer" onSuccess={() => window.location.reload()}>
+                  <Button variant="hero" className="shadow-elevated">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Buyer
+                  </Button>
+                </SmartAddDialog>
               ) : (
-                <>
-                  <AIModal initialMessage="I'd like help managing my active listings. Can you provide insights and suggestions for improving my current active listings performance?">
-                    <Button variant="outline" className="shadow-elevated">
-                      <Bot className="h-4 w-4 mr-2" />
-                      AI Listing Assistant
-                    </Button>
-                  </AIModal>
-                  <SmartAddDialog type="listing" onSuccess={() => window.location.reload()}>
-                    <Button variant="hero" className="shadow-elevated">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Listing
-                    </Button>
-                  </SmartAddDialog>
-                </>
+                <SmartAddDialog type="listing" onSuccess={() => window.location.reload()}>
+                  <Button variant="hero" className="shadow-elevated">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Listing
+                  </Button>
+                </SmartAddDialog>
               )}
             </div>
           </div>

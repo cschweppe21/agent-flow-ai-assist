@@ -2,6 +2,8 @@ import { Header } from "@/components/Header"
 import { Dashboard } from "@/components/Dashboard"
 import { AuthForm } from "@/components/AuthForm"
 import { useAuth } from "@/components/AuthProvider"
+import { SidebarProvider } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/AppSidebar"
 
 const Index = () => {
   const { isAuthenticated, isLoading } = useAuth()
@@ -22,10 +24,15 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <Dashboard />
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AppSidebar />
+        <div className="flex-1">
+          <Header />
+          <Dashboard />
+        </div>
+      </div>
+    </SidebarProvider>
   )
 };
 
