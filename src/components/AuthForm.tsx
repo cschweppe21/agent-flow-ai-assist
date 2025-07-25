@@ -70,12 +70,12 @@ export const AuthForm = () => {
       <Card className="w-full max-w-md shadow-elevated border-border/50 bg-card/95 backdrop-blur-sm">
         <CardHeader className="space-y-1 text-center">
           <div className="flex flex-col items-center mb-6">
-            <img src={slipstreamLogo} alt="SlipStream" className="h-12 w-12 mb-3" />
-            <h1 className="text-2xl font-bold text-foreground mb-1">SlipStream</h1>
+            <img src={slipstreamLogo} alt="SlipStream Dashboard" className="h-12 w-12 mb-3" />
+            <h1 className="text-2xl font-bold text-foreground mb-1">SlipStream Dashboard</h1>
             <p className="text-sm text-muted-foreground">Glide Through Your Workflow</p>
           </div>
           <CardTitle className="text-xl font-semibold text-foreground">
-            {isLogin ? 'Welcome Back' : 'Join SlipStream'}
+            {isLogin ? 'Welcome Back' : 'Join SlipStream Dashboard'}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
             {isLogin ? 'Sign in to your account' : 'Create your account to get started'}

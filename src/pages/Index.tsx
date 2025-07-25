@@ -11,9 +11,9 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center">
         <div className="text-center">
-          <img src={slipstreamLogo} alt="SlipStream" className="h-16 w-16 mx-auto mb-4 animate-pulse" />
+          <img src={slipstreamLogo} alt="SlipStream Dashboard" className="h-16 w-16 mx-auto mb-4 animate-pulse" />
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent mx-auto mb-4"></div>
-          <p className="text-foreground text-lg font-medium">Loading SlipStream...</p>
+          <p className="text-foreground text-lg font-medium">Loading SlipStream Dashboard...</p>
         </div>
       </div>
     )
