@@ -438,6 +438,90 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_change_requests: {
+        Row: {
+          billing_cycle: string | null
+          created_at: string
+          current_plan: string
+          id: string
+          processed_at: string | null
+          requested_plan: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          billing_cycle?: string | null
+          created_at?: string
+          current_plan: string
+          id?: string
+          processed_at?: string | null
+          requested_plan: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          billing_cycle?: string | null
+          created_at?: string
+          current_plan?: string
+          id?: string
+          processed_at?: string | null
+          requested_plan?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          ai_features: boolean | null
+          created_at: string
+          description: string | null
+          display_name: string
+          features: Json | null
+          id: string
+          max_buyers: number | null
+          max_listings: number | null
+          max_tasks: number | null
+          name: string
+          price_monthly: number
+          price_yearly: number | null
+          priority_support: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          ai_features?: boolean | null
+          created_at?: string
+          description?: string | null
+          display_name: string
+          features?: Json | null
+          id?: string
+          max_buyers?: number | null
+          max_listings?: number | null
+          max_tasks?: number | null
+          name: string
+          price_monthly?: number
+          price_yearly?: number | null
+          priority_support?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          ai_features?: boolean | null
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          features?: Json | null
+          id?: string
+          max_buyers?: number | null
+          max_listings?: number | null
+          max_tasks?: number | null
+          name?: string
+          price_monthly?: number
+          price_yearly?: number | null
+          priority_support?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           completed: boolean | null
@@ -541,6 +625,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_plan_limits: {
+        Args: { user_id: string }
+        Returns: Json
+      }
       log_security_event: {
         Args: { event_type: string; event_data?: Json; target_user_id?: string }
         Returns: undefined
