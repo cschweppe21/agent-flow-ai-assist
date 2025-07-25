@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Bell, Menu, Home } from "lucide-react";
 import { OptionsMenu } from "@/components/OptionsMenu";
+import { NotificationDropdown } from "@/components/NotificationDropdown";
 
 export const Header = () => {
   const { user, profile } = useAuth();
@@ -36,12 +37,7 @@ export const Header = () => {
                 </div>
               </div>}
             
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-warning rounded-full flex items-center justify-center text-xs text-white font-bold">
-                3
-              </span>
-            </Button>
+            <NotificationDropdown />
             
             <OptionsMenu />
             
