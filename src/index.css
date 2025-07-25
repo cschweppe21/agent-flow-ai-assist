@@ -216,5 +216,86 @@ All colors MUST be HSL.
 
   .story-link {
     @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
-  }
+}
+
+/* Settings Preferences CSS */
+.compact-mode {
+  --spacing-multiplier: 0.7;
+}
+
+.compact-mode .max-w-7xl {
+  padding-left: calc(1rem * var(--spacing-multiplier));
+  padding-right: calc(1rem * var(--spacing-multiplier));
+}
+
+.compact-mode .space-y-8 > * + * {
+  margin-top: calc(2rem * var(--spacing-multiplier));
+}
+
+.compact-mode .space-y-6 > * + * {
+  margin-top: calc(1.5rem * var(--spacing-multiplier));
+}
+
+.compact-mode .space-y-4 > * + * {
+  margin-top: calc(1rem * var(--spacing-multiplier));
+}
+
+.compact-mode .py-8 {
+  padding-top: calc(2rem * var(--spacing-multiplier));
+  padding-bottom: calc(2rem * var(--spacing-multiplier));
+}
+
+.compact-mode .py-6 {
+  padding-top: calc(1.5rem * var(--spacing-multiplier));
+  padding-bottom: calc(1.5rem * var(--spacing-multiplier));
+}
+
+.compact-mode .py-4 {
+  padding-top: calc(1rem * var(--spacing-multiplier));
+  padding-bottom: calc(1rem * var(--spacing-multiplier));
+}
+
+.compact-mode .p-6 {
+  padding: calc(1.5rem * var(--spacing-multiplier));
+}
+
+.compact-mode .p-4 {
+  padding: calc(1rem * var(--spacing-multiplier));
+}
+
+.high-contrast {
+  --background: 0 0% 5%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 8%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 8%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 213 94% 80%;
+  --primary-foreground: 0 0% 5%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 80%;
+  --accent: 213 94% 85%;
+  --accent-foreground: 0 0% 5%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+}
+
+.high-contrast * {
+  border-color: hsl(var(--border)) !important;
+}
+
+.no-animations * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.no-animations *:before,
+.no-animations *:after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

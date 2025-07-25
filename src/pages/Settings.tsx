@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,79 @@ export default function Settings() {
   });
   
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load preferences from localStorage on mount
+  useEffect(() => {
+    const savedPreferences = localStorage.getItem('slipstream-preferences');
+    if (savedPreferences) {
+      try {
+        const parsed = JSON.parse(savedPreferences);
+        setPreferences(prev => ({ ...prev, ...parsed }));
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      }
+    }
+  }, []);
+
+  // Apply brightness effect
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.style.filter = `brightness(${preferences.brightness}%)`;
+    } else {
+      document.documentElement.style.filter = 'none';
+    }
+  }, [preferences.brightness, theme]);
+
+  // Apply compact mode
+  useEffect(() => {
+    if (preferences.compact_mode) {
+      document.documentElement.classList.add('compact-mode');
+    } else {
+      document.documentElement.classList.remove('compact-mode');
+    }
+  }, [preferences.compact_mode]);
+
+  // Apply high contrast
+  useEffect(() => {
+    if (preferences.high_contrast) {
+      document.documentElement.classList.add('high-contrast');
+    } else {
+      document.documentElement.classList.remove('high-contrast');
+    }
+  }, [preferences.high_contrast]);
+
+  // Apply animations setting
+  useEffect(() => {
+    if (!preferences.show_animations) {
+      document.documentElement.classList.add('no-animations');
+    } else {
+      document.documentElement.classList.remove('no-animations');
+    }
+  }, [preferences.show_animations]);
+
+  // Apply welcome message visibility
+  useEffect(() => {
+    const welcomeSection = document.getElementById('welcome-section');
+    if (welcomeSection) {
+      welcomeSection.style.display = preferences.show_welcome ? 'block' : 'none';
+    }
+  }, [preferences.show_welcome]);
+
+  // Apply auto-refresh setting
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (preferences.auto_refresh) {
+      // Auto-refresh every 5 minutes
+      interval = setInterval(() => {
+        console.log('Auto-refreshing dashboard data...');
+        // In a real app, this would trigger data refetch
+        window.dispatchEvent(new CustomEvent('auto-refresh-data'));
+      }, 5 * 60 * 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [preferences.auto_refresh]);
 
   const handleProfileSave = async () => {
     if (!updateProfile) return;
@@ -295,6 +368,8 @@ export default function Settings() {
                 <Button 
                   className="flex items-center gap-2"
                   onClick={() => {
+                    // Store preferences in localStorage
+                    localStorage.setItem('slipstream-preferences', JSON.stringify(preferences));
                     toast({
                       title: "Preferences saved",
                       description: "Your visual preferences have been updated.",
