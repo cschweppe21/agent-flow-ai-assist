@@ -25,7 +25,6 @@ export const Header = () => {
             <img src={slipstreamLogo} alt="SlipStream Dashboard" className="h-8 w-8" />
             <div>
               <h1 className="text-lg font-semibold text-foreground">SlipStream Dashboard</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Glide Through Your Workflow</p>
             </div>
           </div>
           

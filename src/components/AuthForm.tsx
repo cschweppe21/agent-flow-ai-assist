@@ -72,7 +72,6 @@ export const AuthForm = () => {
           <div className="flex flex-col items-center mb-6">
             <img src={slipstreamLogo} alt="SlipStream Dashboard" className="h-12 w-12 mb-3" />
             <h1 className="text-2xl font-bold text-foreground mb-1">SlipStream Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Glide Through Your Workflow</p>
           </div>
           <CardTitle className="text-xl font-semibold text-foreground">
             {isLogin ? 'Welcome Back' : 'Join SlipStream Dashboard'}
