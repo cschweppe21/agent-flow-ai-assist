@@ -148,7 +148,6 @@ export const WeeklyTodoCalendar = () => {
                 onClick={() => navigate('/tasks')}
                 className="text-xs"
               >
-                <Plus className="h-3 w-3 mr-1" />
                 Manage Tasks
               </Button>
             </div>

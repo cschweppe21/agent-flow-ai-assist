@@ -230,7 +230,7 @@ export const Dashboard = () => {
           {/* Vendors */}
           <Card className="shadow-card bg-gradient-card border-border/50">
             <CardHeader>
-              <CardTitle className="flex items-center text-foreground">
+              <CardTitle className="flex items-center text-foreground text-lg">
                 <Users className="h-5 w-5 mr-2 text-primary" />
                 Preferred Vendors
               </CardTitle>

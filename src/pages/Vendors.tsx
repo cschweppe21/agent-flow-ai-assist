@@ -276,14 +276,6 @@ const Vendors = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="shadow-elevated"
-              >
-                Back to Dashboard
-              </Button>
-              
               <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
                 <DialogTrigger asChild>
                   <Button variant="hero" className="shadow-elevated">
@@ -291,6 +283,14 @@ const Vendors = () => {
                     Add Vendor
                   </Button>
                 </DialogTrigger>
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+                className="shadow-elevated"
+              >
+                Back to Dashboard
+              </Button>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add New Vendor</DialogTitle>
