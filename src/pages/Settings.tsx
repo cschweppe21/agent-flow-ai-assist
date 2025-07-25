@@ -10,13 +10,15 @@ import { Header } from "@/components/Header";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import { useAuth } from "@/components/AuthProvider";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Save, User, Bell, Info, Shield } from "lucide-react";
+import { useTheme } from "next-themes";
+import { ArrowLeft, Save, User, Bell, Info, Shield, Palette, Sun, Moon, Monitor, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-type SettingsView = 'profile' | 'notifications' | 'security' | 'about';
+type SettingsView = 'profile' | 'notifications' | 'preferences' | 'security' | 'about';
 
 export default function Settings() {
   const { user, profile, updateProfile } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -66,9 +68,16 @@ export default function Settings() {
 
   const navigationItems = [
     { id: 'profile' as const, label: 'Profile Settings', icon: User },
+    { id: 'preferences' as const, label: 'Preferences', icon: Palette },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
     { id: 'security' as const, label: 'Security', icon: Shield },
     { id: 'about' as const, label: 'About', icon: Info },
+  ];
+
+  const themeOptions = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: Monitor },
   ];
 
   const renderContent = () => {
@@ -126,6 +135,107 @@ export default function Settings() {
                 >
                   <Save className="h-4 w-4" />
                   {isLoading ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 'preferences':
+        return (
+          <Card className="shadow-card bg-gradient-card border-border/50">
+            <CardHeader>
+              <CardTitle className="text-foreground">Visual Preferences</CardTitle>
+              <CardDescription>
+                Customize the appearance and layout of your dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium text-foreground mb-3">Theme</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {themeOptions.map((option) => {
+                      const Icon = option.icon;
+                      const isSelected = theme === option.value;
+                      
+                      return (
+                        <Button
+                          key={option.value}
+                          variant={isSelected ? "default" : "outline"}
+                          className={`flex flex-col items-center justify-center h-20 ${
+                            isSelected ? "ring-2 ring-primary" : ""
+                          }`}
+                          onClick={() => setTheme(option.value)}
+                        >
+                          <Icon className="h-5 w-5 mb-2" />
+                          <span className="text-sm">{option.label}</span>
+                          {isSelected && <Check className="h-3 w-3 mt-1" />}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <h3 className="font-medium text-foreground mb-3">Layout Options</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-foreground">Compact Mode</Label>
+                        <p className="text-sm text-muted-foreground">Reduce spacing and padding for more content</p>
+                      </div>
+                      <Switch disabled />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-foreground">Show Animations</Label>
+                        <p className="text-sm text-muted-foreground">Enable smooth transitions and hover effects</p>
+                      </div>
+                      <Switch defaultChecked disabled />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-foreground">High Contrast</Label>
+                        <p className="text-sm text-muted-foreground">Increase contrast for better visibility</p>
+                      </div>
+                      <Switch disabled />
+                    </div>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div>
+                  <h3 className="font-medium text-foreground mb-3">Dashboard Layout</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-foreground">Show Welcome Message</Label>
+                        <p className="text-sm text-muted-foreground">Display personalized greeting on dashboard</p>
+                      </div>
+                      <Switch defaultChecked disabled />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-foreground">Auto-refresh Data</Label>
+                        <p className="text-sm text-muted-foreground">Automatically update dashboard metrics</p>
+                      </div>
+                      <Switch defaultChecked disabled />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <Button className="flex items-center gap-2" disabled>
+                  <Save className="h-4 w-4" />
+                  Save Preferences
                 </Button>
               </div>
             </CardContent>

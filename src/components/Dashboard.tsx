@@ -34,9 +34,11 @@ import { AIModal } from "@/components/AIModal"
 import { BuyerProfile } from "@/components/BuyerProfile"
 import { VendorCard } from "@/components/VendorCard"
 import { VendorProfile } from "@/components/VendorProfile"
+import { useAuth } from "@/components/AuthProvider"
 import { supabase } from "@/integrations/supabase/client"
 
 export const Dashboard = () => {
+  const { profile } = useAuth()
   const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
@@ -114,7 +116,9 @@ export const Dashboard = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back, Agent!</h2>
+        <h2 className="text-3xl font-bold text-foreground mb-2">
+          Welcome back, {profile?.display_name?.split(' ')[0] || 'Agent'}!
+        </h2>
         <p className="text-muted-foreground">Here's what's happening with your real estate business today.</p>
       </div>
 
