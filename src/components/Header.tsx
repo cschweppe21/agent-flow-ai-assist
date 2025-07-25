@@ -21,8 +21,7 @@ export const Header = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div>
-              <h1 className="text-xl font-bold text-white">SlipStream</h1>
-              <p className="text-sm text-white/80">Glide Through Your Workflow</p>
+              <h1 className="text-xl font-bold text-white">SlipStream Dashboard</h1>
             </div>
           </div>
           
