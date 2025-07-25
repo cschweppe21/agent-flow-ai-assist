@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { Header } from "@/components/Header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -41,6 +42,7 @@ const Tasks = () => {
   const [showAddTaskModal, setShowAddTaskModal] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const getMonthDates = () => {
     const year = currentMonth.getFullYear()
@@ -288,8 +290,21 @@ const Tasks = () => {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Task Management</h1>
-          <p className="text-muted-foreground">Organize and manage your real estate tasks</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Task Management</h1>
+              <p className="text-muted-foreground">Organize and manage your real estate tasks</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+                className="shadow-elevated"
+              >
+                Back to Dashboard
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Stats Cards */}

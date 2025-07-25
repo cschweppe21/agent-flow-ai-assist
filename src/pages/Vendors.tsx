@@ -275,14 +275,23 @@ const Vendors = () => {
               <p className="text-muted-foreground">Manage your trusted network of real estate professionals</p>
             </div>
             
-            <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-              <DialogTrigger asChild>
-                <Button variant="hero" className="shadow-elevated">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Vendor
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/')}
+                className="shadow-elevated"
+              >
+                Back to Dashboard
+              </Button>
+              
+              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="hero" className="shadow-elevated">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Vendor
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Add New Vendor</DialogTitle>
                 </DialogHeader>
@@ -422,58 +431,59 @@ const Vendors = () => {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-            <Card className="shadow-card bg-gradient-card">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Vendors</p>
-                    <p className="text-2xl font-bold">{stats.total}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-primary" />
+        </div>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Vendors</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
                 </div>
-              </CardContent>
-            </Card>
+                <Users className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="shadow-card bg-gradient-card">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Preferred</p>
-                    <p className="text-2xl font-bold">{stats.preferred}</p>
-                  </div>
-                  <Sparkles className="h-8 w-8 text-primary" />
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Preferred</p>
+                  <p className="text-2xl font-bold">{stats.preferred}</p>
                 </div>
-              </CardContent>
-            </Card>
+                <Sparkles className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="shadow-card bg-gradient-card">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Categories</p>
-                    <p className="text-2xl font-bold">{stats.categories}</p>
-                  </div>
-                  <Filter className="h-8 w-8 text-primary" />
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Categories</p>
+                  <p className="text-2xl font-bold">{stats.categories}</p>
                 </div>
-              </CardContent>
-            </Card>
+                <Filter className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="shadow-card bg-gradient-card">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Avg Rating</p>
-                    <p className="text-2xl font-bold">{stats.avgRating.toFixed(1)}</p>
-                  </div>
-                  <Star className="h-8 w-8 text-primary" />
+          <Card className="shadow-card bg-gradient-card">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Avg Rating</p>
+                  <p className="text-2xl font-bold">{stats.avgRating.toFixed(1)}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <Star className="h-8 w-8 text-primary" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -549,7 +559,7 @@ const Vendors = () => {
                   </CardHeader>
                   <CardContent>
                     {categoryVendors.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {categoryVendors.map(vendor => (
                           <VendorCard
                             key={vendor.id}
