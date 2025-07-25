@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
+import slipstreamLogo from "@/assets/slipstream-logo.png";
 export const AuthForm = () => {
   const {
     signIn,
@@ -68,6 +69,7 @@ export const AuthForm = () => {
       <Card className="w-full max-w-md shadow-elevated bg-gradient-card border-border/50">
         <CardHeader className="space-y-1">
           <div className="text-center mb-6">
+            <img src={slipstreamLogo} alt="SlipStream" className="h-16 w-16 mx-auto mb-3" />
             <h1 className="text-foreground mb-2 font-bold text-4xl">SlipStream</h1>
             <p className="text-zinc-950 font-extralight">Glide Through Your Workflow</p>
           </div>

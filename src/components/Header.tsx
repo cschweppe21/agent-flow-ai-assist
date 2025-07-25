@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Bell, Menu, Home } from "lucide-react";
 import { OptionsMenu } from "@/components/OptionsMenu";
+import slipstreamLogo from "@/assets/slipstream-logo.png";
 
 export const Header = () => {
   const { user, profile } = useAuth();
@@ -20,6 +21,7 @@ export const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
+            <img src={slipstreamLogo} alt="SlipStream" className="h-10 w-10 mr-3" />
             <div>
               <h1 className="text-xl font-bold text-white">SlipStream</h1>
               <p className="text-sm text-white/80">Glide Through Your Workflow</p>
