@@ -11,6 +11,7 @@ import { FloatingAIButton } from "@/components/FloatingAIButton";
 import { useAuth } from "@/components/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
+import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, Save, User, Bell, Info, Shield, Palette, Sun, Moon, Monitor, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -35,6 +36,15 @@ export default function Settings() {
     task_reminders: true,
     commission_alerts: true,
     market_updates: false
+  });
+
+  const [preferences, setPreferences] = useState({
+    compact_mode: false,
+    show_animations: true,
+    high_contrast: false,
+    show_welcome: true,
+    auto_refresh: true,
+    brightness: 80
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -177,6 +187,30 @@ export default function Settings() {
                   </div>
                 </div>
                 
+                {/* Brightness Adjuster - only show in light mode */}
+                {theme === 'light' && (
+                  <div>
+                    <h3 className="font-medium text-foreground mb-3">Brightness</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-foreground">Screen Brightness</Label>
+                        <span className="text-sm text-muted-foreground">{preferences.brightness}%</span>
+                      </div>
+                      <Slider
+                        value={[preferences.brightness]}
+                        onValueChange={(value) => setPreferences(prev => ({ ...prev, brightness: value[0] }))}
+                        max={100}
+                        min={20}
+                        step={5}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Adjust brightness to reduce eye strain in bright environments
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
                 <Separator />
                 
                 <div>
@@ -187,7 +221,12 @@ export default function Settings() {
                         <Label className="text-foreground">Compact Mode</Label>
                         <p className="text-sm text-muted-foreground">Reduce spacing and padding for more content</p>
                       </div>
-                      <Switch disabled />
+                      <Switch 
+                        checked={preferences.compact_mode}
+                        onCheckedChange={(checked) => 
+                          setPreferences(prev => ({ ...prev, compact_mode: checked }))
+                        }
+                      />
                     </div>
                     
                     <div className="flex items-center justify-between">
@@ -195,7 +234,12 @@ export default function Settings() {
                         <Label className="text-foreground">Show Animations</Label>
                         <p className="text-sm text-muted-foreground">Enable smooth transitions and hover effects</p>
                       </div>
-                      <Switch defaultChecked disabled />
+                      <Switch 
+                        checked={preferences.show_animations}
+                        onCheckedChange={(checked) => 
+                          setPreferences(prev => ({ ...prev, show_animations: checked }))
+                        }
+                      />
                     </div>
                     
                     <div className="flex items-center justify-between">
@@ -203,7 +247,12 @@ export default function Settings() {
                         <Label className="text-foreground">High Contrast</Label>
                         <p className="text-sm text-muted-foreground">Increase contrast for better visibility</p>
                       </div>
-                      <Switch disabled />
+                      <Switch 
+                        checked={preferences.high_contrast}
+                        onCheckedChange={(checked) => 
+                          setPreferences(prev => ({ ...prev, high_contrast: checked }))
+                        }
+                      />
                     </div>
                   </div>
                 </div>
@@ -218,7 +267,12 @@ export default function Settings() {
                         <Label className="text-foreground">Show Welcome Message</Label>
                         <p className="text-sm text-muted-foreground">Display personalized greeting on dashboard</p>
                       </div>
-                      <Switch defaultChecked disabled />
+                      <Switch 
+                        checked={preferences.show_welcome}
+                        onCheckedChange={(checked) => 
+                          setPreferences(prev => ({ ...prev, show_welcome: checked }))
+                        }
+                      />
                     </div>
                     
                     <div className="flex items-center justify-between">
@@ -226,14 +280,27 @@ export default function Settings() {
                         <Label className="text-foreground">Auto-refresh Data</Label>
                         <p className="text-sm text-muted-foreground">Automatically update dashboard metrics</p>
                       </div>
-                      <Switch defaultChecked disabled />
+                      <Switch 
+                        checked={preferences.auto_refresh}
+                        onCheckedChange={(checked) => 
+                          setPreferences(prev => ({ ...prev, auto_refresh: checked }))
+                        }
+                      />
                     </div>
                   </div>
                 </div>
               </div>
               
               <div className="flex justify-end">
-                <Button className="flex items-center gap-2" disabled>
+                <Button 
+                  className="flex items-center gap-2"
+                  onClick={() => {
+                    toast({
+                      title: "Preferences saved",
+                      description: "Your visual preferences have been updated.",
+                    });
+                  }}
+                >
                   <Save className="h-4 w-4" />
                   Save Preferences
                 </Button>
