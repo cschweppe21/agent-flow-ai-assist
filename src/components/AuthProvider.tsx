@@ -22,6 +22,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName?: string) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
+  updateProfile: (displayName: string) => Promise<void>
   isAuthenticated: boolean
   isLoading: boolean
 }
@@ -114,6 +115,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     await supabase.auth.signOut()
   }
 
+  const updateProfile = async (displayName: string) => {
+    if (!user) throw new Error('No user logged in')
+    
+    const { error } = await supabase
+      .from('profiles')
+      .update({ display_name: displayName })
+      .eq('user_id', user.id)
+    
+    if (error) throw error
+    
+    // Update local profile state
+    setProfile(prev => prev ? { ...prev, display_name: displayName } : null)
+  }
+
   const value: AuthContextType = {
     user,
     profile,
@@ -121,6 +136,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     signUp,
     signIn,
     signOut,
+    updateProfile,
     isAuthenticated: !!user,
     isLoading
   }

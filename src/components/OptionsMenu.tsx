@@ -1,7 +1,8 @@
 
-import { Settings, Sun, Moon, Monitor, Check, LogOut } from "lucide-react";
+import { Settings, Sun, Moon, Monitor, Check, LogOut, User, Bell, Info } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/components/AuthProvider";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import {
 export const OptionsMenu = () => {
   const { theme, setTheme } = useTheme();
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   const themeOptions = [
     { value: "light", label: "Light", icon: Sun },
@@ -66,21 +68,24 @@ export const OptionsMenu = () => {
           Settings
         </DropdownMenuLabel>
         <DropdownMenuItem 
-          disabled 
-          className="text-muted-foreground cursor-not-allowed"
+          onClick={() => navigate('/settings')}
+          className="flex items-center cursor-pointer hover:bg-accent hover:text-accent-foreground"
         >
+          <User className="mr-2 h-4 w-4" />
           Profile Settings
         </DropdownMenuItem>
         <DropdownMenuItem 
-          disabled 
-          className="text-muted-foreground cursor-not-allowed"
+          onClick={() => navigate('/settings')}
+          className="flex items-center cursor-pointer hover:bg-accent hover:text-accent-foreground"
         >
+          <Bell className="mr-2 h-4 w-4" />
           Notifications
         </DropdownMenuItem>
         <DropdownMenuItem 
-          disabled 
-          className="text-muted-foreground cursor-not-allowed"
+          onClick={() => navigate('/settings')}
+          className="flex items-center cursor-pointer hover:bg-accent hover:text-accent-foreground"
         >
+          <Info className="mr-2 h-4 w-4" />
           About
         </DropdownMenuItem>
         
