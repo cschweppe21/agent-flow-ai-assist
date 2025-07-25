@@ -12,7 +12,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
 import { Slider } from "@/components/ui/slider";
-import { ArrowLeft, Save, User, Bell, Info, Shield, Palette, Sun, Moon, Monitor, Check } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Save, User, Bell, Info, Shield, Palette, Sun, Moon, Monitor, Check, Crown, Zap, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type SettingsView = 'profile' | 'notifications' | 'preferences' | 'security' | 'about';
@@ -46,8 +47,38 @@ export default function Settings() {
     auto_refresh: true,
     brightness: 80
   });
+
+  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
+  const [currentPlan, setCurrentPlan] = useState<any>(null);
+  const [isUpgrading, setIsUpgrading] = useState(false);
   
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load subscription plans and current plan
+  useEffect(() => {
+    const loadSubscriptionData = async () => {
+      try {
+        // Load subscription plans
+        const { data: plansData, error: plansError } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .order('price_monthly');
+        
+        if (plansError) throw plansError;
+        setSubscriptionPlans(plansData || []);
+        
+        // Set current plan based on user's subscription tier
+        if (profile?.subscription_tier) {
+          const userPlan = plansData?.find(plan => plan.name === profile.subscription_tier);
+          setCurrentPlan(userPlan);
+        }
+      } catch (error) {
+        console.error('Error loading subscription data:', error);
+      }
+    };
+    
+    loadSubscriptionData();
+  }, [profile]);
 
   // Load preferences from localStorage on mount
   useEffect(() => {
@@ -163,65 +194,208 @@ export default function Settings() {
     { value: "system", label: "System", icon: Monitor },
   ];
 
+  const handleUpgradeRequest = async (planName: string, billingCycle: 'monthly' | 'yearly') => {
+    if (!user || !profile) return;
+    
+    setIsUpgrading(true);
+    try {
+      const { error } = await supabase
+        .from('subscription_change_requests')
+        .insert({
+          user_id: user.id,
+          current_plan: profile.subscription_tier || 'free',
+          requested_plan: planName,
+          billing_cycle: billingCycle
+        });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Upgrade request submitted",
+        description: `Your request to upgrade to ${planName} (${billingCycle}) has been submitted for processing.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit upgrade request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
+  const renderPlanCard = (plan: any, isCurrentPlan: boolean) => {
+    const Icon = plan.name === 'free' ? User : plan.name === 'pro' ? Zap : Crown;
+    const features = typeof plan.features === 'string' ? JSON.parse(plan.features) : plan.features;
+    
+    return (
+      <Card key={plan.id} className={`shadow-card bg-gradient-card border-border/50 ${isCurrentPlan ? 'ring-2 ring-primary' : ''}`}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Icon className="h-5 w-5 text-primary" />
+              <CardTitle className="text-foreground">{plan.display_name}</CardTitle>
+            </div>
+            {isCurrentPlan && (
+              <Badge variant="default" className="bg-primary text-primary-foreground">
+                Current Plan
+              </Badge>
+            )}
+          </div>
+          <CardDescription>{plan.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold text-foreground">
+                ${plan.price_monthly}
+              </span>
+              <span className="text-muted-foreground">/month</span>
+            </div>
+            {plan.price_yearly && (
+              <div className="text-sm text-muted-foreground">
+                ${plan.price_yearly}/year (Save ${((plan.price_monthly * 12) - plan.price_yearly).toFixed(2)})
+              </div>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            {features.map((feature: string, index: number) => (
+              <div key={index} className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-success" />
+                <span className="text-sm text-foreground">{feature}</span>
+              </div>
+            ))}
+          </div>
+          
+          {!isCurrentPlan && plan.name !== 'free' && (
+            <div className="space-y-2 pt-4">
+              <Button
+                onClick={() => handleUpgradeRequest(plan.name, 'monthly')}
+                disabled={isUpgrading}
+                className="w-full"
+                variant="default"
+              >
+                {isUpgrading ? 'Processing...' : `Upgrade to ${plan.display_name} (Monthly)`}
+              </Button>
+              {plan.price_yearly && (
+                <Button
+                  onClick={() => handleUpgradeRequest(plan.name, 'yearly')}
+                  disabled={isUpgrading}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {isUpgrading ? 'Processing...' : `Upgrade to ${plan.display_name} (Yearly)`}
+                </Button>
+              )}
+            </div>
+          )}
+          
+          {isCurrentPlan && plan.name !== 'free' && (
+            <div className="pt-4">
+              <Button variant="outline" className="w-full" disabled>
+                Manage Subscription (Coming Soon)
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
+
   const renderContent = () => {
     switch (currentView) {
       case 'profile':
         return (
-          <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader>
-              <CardTitle className="text-foreground">Profile Settings</CardTitle>
-              <CardDescription>
-                Manage your personal information and account preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-medium text-foreground">Account Type</h3>
-                  <p className="text-sm text-muted-foreground">Your current subscription plan</p>
+          <div className="space-y-6">
+            {/* Account Type Management */}
+            <Card className="shadow-card bg-gradient-card border-border/50">
+              <CardHeader>
+                <CardTitle className="text-foreground flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  Account Management
+                </CardTitle>
+                <CardDescription>
+                  Manage your subscription plan and billing preferences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {currentPlan && (
+                  <div className="p-4 border border-border rounded-lg bg-muted/50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium text-foreground">Current Plan: {currentPlan.display_name}</h3>
+                        <p className="text-sm text-muted-foreground">{currentPlan.description}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-foreground">
+                          ${currentPlan.price_monthly}/month
+                        </div>
+                        {profile?.subscription_active && profile?.subscription_end_date && (
+                          <div className="text-xs text-muted-foreground">
+                            {profile.subscription_active ? 'Active' : 'Inactive'} until{' '}
+                            {new Date(profile.subscription_end_date).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {subscriptionPlans.map((plan) => 
+                    renderPlanCard(plan, plan.name === profile?.subscription_tier)
+                  )}
                 </div>
-                <Badge variant={roleBadgeVariants[profile?.role || 'free']}>
-                  {(profile?.role || 'free').toUpperCase()}
-                </Badge>
-              </div>
-              
-              <Separator />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="display_name" className="text-foreground">Display Name</Label>
-                  <Input
-                    id="display_name"
-                    value={profileData.display_name}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
-                    placeholder="Enter your display name"
-                  />
+              </CardContent>
+            </Card>
+
+            {/* Profile Settings */}
+            <Card className="shadow-card bg-gradient-card border-border/50">
+              <CardHeader>
+                <CardTitle className="text-foreground">Profile Settings</CardTitle>
+                <CardDescription>
+                  Manage your personal information and account preferences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="display_name" className="text-foreground">Display Name</Label>
+                    <Input
+                      id="display_name"
+                      value={profileData.display_name}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, display_name: e.target.value }))}
+                      placeholder="Enter your display name"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-foreground">Email Address</Label>
+                    <Input
+                      id="email"
+                      value={profileData.email}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <p className="text-xs text-muted-foreground">Email cannot be changed here</p>
+                  </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-foreground">Email Address</Label>
-                  <Input
-                    id="email"
-                    value={profileData.email}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-muted-foreground">Email cannot be changed here</p>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleProfileSave}
+                    disabled={isLoading}
+                    className="flex items-center gap-2"
+                  >
+                    <Save className="h-4 w-4" />
+                    {isLoading ? 'Saving...' : 'Save Changes'}
+                  </Button>
                 </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleProfileSave}
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  <Save className="h-4 w-4" />
-                  {isLoading ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         );
 
       case 'preferences':
