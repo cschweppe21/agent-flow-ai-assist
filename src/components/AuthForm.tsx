@@ -68,7 +68,8 @@ export const AuthForm = () => {
       <Card className="w-full max-w-md shadow-elevated bg-gradient-card border-border/50">
         <CardHeader className="space-y-1">
           <div className="text-center mb-6">
-            <h1 className="text-foreground mb-2 font-bold text-4xl">SlipStream Dashboard</h1>
+            <h1 className="text-foreground font-bold text-4xl">SlipStream</h1>
+            <h2 className="text-foreground font-bold text-2xl">Dashboard</h2>
           </div>
           <CardTitle className="text-2xl font-bold text-center text-foreground">
             {isLogin ? 'Welcome Back' : 'Join SlipStream'}
