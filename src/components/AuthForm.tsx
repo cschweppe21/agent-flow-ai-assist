@@ -89,11 +89,15 @@ export const AuthForm = ({ onBack }: AuthFormProps) => {
           </Button>
         )}
         
-        <div className="flex items-center justify-center space-x-2">
-          <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-            <Zap className="h-6 w-6 text-white" />
+        <div className="flex justify-center">
+          <div className="bg-black/40 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/10">
+            <div className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <Zap className="h-6 w-6 text-white" />
+              </div>
+              <span className="text-2xl font-bold text-white">SlipStream Dashboard</span>
+            </div>
           </div>
-          <span className="text-2xl font-bold text-white">SlipStream Dashboard</span>
         </div>
       </div>
 
@@ -228,35 +232,37 @@ export const AuthForm = ({ onBack }: AuthFormProps) => {
       {!isLogin && (
         <div className="p-6">
           <div className="max-w-4xl mx-auto">
-            <h3 className="text-xl font-bold text-white text-center mb-6">Compare Plans</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              {Object.entries(roleBadges).map(([role, config]) => (
-                <div 
-                  key={role}
-                  className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20"
-                >
-                  <div className="text-center mb-4">
-                    <Badge variant={config.variant} className="mb-2">
-                      {config.label}
-                    </Badge>
-                    {role === 'pro' && (
-                      <Badge variant="secondary" className="ml-2 text-xs">
-                        Most Popular
+            <div className="bg-black/40 backdrop-blur-sm rounded-lg p-6 border border-white/10">
+              <h3 className="text-xl font-bold text-white text-center mb-6">Compare Plans</h3>
+              <div className="grid md:grid-cols-3 gap-4">
+                {Object.entries(roleBadges).map(([role, config]) => (
+                  <div 
+                    key={role}
+                    className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20"
+                  >
+                    <div className="text-center mb-4">
+                      <Badge variant={config.variant} className="mb-2">
+                        {config.label}
                       </Badge>
-                    )}
-                    <div className="text-2xl font-bold text-white mt-2">{config.price}</div>
-                    <p className="text-white/70 text-sm">{config.description}</p>
+                      {role === 'pro' && (
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          Most Popular
+                        </Badge>
+                      )}
+                      <div className="text-2xl font-bold text-white mt-2">{config.price}</div>
+                      <p className="text-white/70 text-sm">{config.description}</p>
+                    </div>
+                    <ul className="space-y-2">
+                      {config.features.map((feature, index) => (
+                        <li key={index} className="flex items-center space-x-2 text-sm text-white/80">
+                          <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="space-y-2">
-                    {config.features.map((feature, index) => (
-                      <li key={index} className="flex items-center space-x-2 text-sm text-white/80">
-                        <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
