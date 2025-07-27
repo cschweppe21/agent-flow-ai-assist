@@ -53,6 +53,42 @@ serve(async (req) => {
         required: ["name", "status"],
         additionalProperties: false
       };
+    } else if (type === 'vendor') {
+      systemPrompt = `You are an AI assistant that extracts vendor information from natural language descriptions. Extract the following information and return it as JSON. If information is not provided, use null for that field.`;
+      
+      jsonSchema = {
+        type: "object",
+        properties: {
+          name: { type: "string", description: "Full name of the vendor" },
+          business_name: { type: ["string", "null"], description: "Business name" },
+          category: { type: "string", description: "Service category (e.g., 'photographer', 'roofer', 'inspector')" },
+          phone: { type: ["string", "null"], description: "Phone number" },
+          email: { type: ["string", "null"], description: "Email address" },
+          website: { type: ["string", "null"], description: "Website URL" },
+          address: { type: ["string", "null"], description: "Business address" },
+          rating: { type: ["number", "null"], description: "Rating out of 5" },
+          is_preferred: { type: "boolean", default: false },
+          notes: { type: ["string", "null"], description: "Additional notes about the vendor including pricing, specialties, etc." }
+        },
+        required: ["name", "category"],
+        additionalProperties: false
+      };
+    } else if (type === 'task') {
+      systemPrompt = `You are an AI assistant that extracts task information from natural language descriptions. Extract the following information and return it as JSON. If information is not provided, use null for that field.`;
+      
+      jsonSchema = {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Brief title of the task" },
+          description: { type: ["string", "null"], description: "Detailed description of the task" },
+          due_date: { type: ["string", "null"], description: "Due date in YYYY-MM-DD format" },
+          priority: { type: "string", enum: ["low", "medium", "high"], default: "medium" },
+          completed: { type: "boolean", default: false },
+          listing_id: { type: ["string", "null"], description: "Related listing ID if applicable" }
+        },
+        required: ["title"],
+        additionalProperties: false
+      };
     } else if (type === 'listing') {
       systemPrompt = `You are an AI assistant that extracts listing information from natural language descriptions. Extract the following information and return it as JSON. If information is not provided, use null for that field.`;
       
@@ -128,6 +164,30 @@ serve(async (req) => {
       
       if (error) {
         console.error('Database error inserting buyer:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+      result = data;
+    } else if (type === 'vendor') {
+      const { data, error } = await supabase
+        .from('vendors')
+        .insert([extractedData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database error inserting vendor:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+      result = data;
+    } else if (type === 'task') {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert([extractedData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database error inserting task:', error);
         throw new Error(`Database error: ${error.message}`);
       }
       result = data;

@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/AuthProvider";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Bell, Menu, Home } from "lucide-react";
+import { Bell, Menu, Home, Sparkles } from "lucide-react";
 import { OptionsMenu } from "@/components/OptionsMenu";
 import { NotificationDropdown } from "@/components/NotificationDropdown";
+import { SmartAIHelper } from "@/components/SmartAIHelper";
 
 export const Header = () => {
   const { user, profile } = useAuth();
@@ -27,6 +28,17 @@ export const Header = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <SmartAIHelper>
+              <Button 
+                variant="hero" 
+                size="sm"
+                className="bg-gradient-primary text-white shadow-elegant hover:shadow-glow transition-all duration-300"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Smart Helper
+              </Button>
+            </SmartAIHelper>
+
             {user && <div className="flex items-center space-x-3">
                 <Badge variant={roleBadgeVariants[profile?.role || 'free']} className="text-xs">
                   {(profile?.role || 'free').toUpperCase()}
