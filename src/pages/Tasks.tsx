@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Calendar, Plus, Bot, Loader2, Check, X, Filter, Search, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { DayTasksModal } from "@/components/DayTasksModal"
 import { AddTaskModal } from "@/components/AddTaskModal"
+import { ManualAddDialog } from "@/components/ManualAddDialog"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/components/AuthProvider"
 import { useToast } from "@/hooks/use-toast"
@@ -296,6 +297,15 @@ const Tasks = () => {
               <p className="text-muted-foreground">Organize and manage your real estate tasks</p>
             </div>
             <div className="flex items-center space-x-4">
+              <ManualAddDialog type="task" onSuccess={handleTaskAdded}>
+                <Button
+                  variant="hero"
+                  className="shadow-elevated"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
+              </ManualAddDialog>
               <Button
                 variant="outline"
                 onClick={() => navigate('/')}
@@ -424,19 +434,12 @@ const Tasks = () => {
           <div className="lg:col-span-2">
             <Card className="shadow-card bg-gradient-card border-border/50">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between text-foreground text-lg">
+                <CardTitle className="flex items-center text-foreground text-lg">
                   <span>Tasks for {new Date(selectedDate).toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     month: 'long', 
                     day: 'numeric' 
                   })}</span>
-                  <Button
-                    onClick={() => setShowAddTaskModal(true)}
-                    className="ml-auto"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Task
-                  </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">

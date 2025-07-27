@@ -11,8 +11,10 @@ import { DaysOnMarketChart } from "./charts/DaysOnMarketChart"
 import { BuyerChart } from "./charts/BuyerChart"
 import { BuyerCard } from "@/components/BuyerCard"
 import { SmartAddDialog } from "@/components/SmartAddDialog"
+import { ManualAddDialog } from "@/components/ManualAddDialog"
+import { SmartAIHelper } from "@/components/SmartAIHelper"
 import { CommissionDashboard } from "@/components/CommissionDashboard"
-import { useMockDashboardData as useDashboardData } from "@/hooks/useMockDashboardData"
+import { useDashboardData } from "@/hooks/useDashboardData"
 import { 
   Home, 
   DollarSign, 
@@ -39,38 +41,53 @@ import { supabase } from "@/integrations/supabase/client"
 
 export const Dashboard = () => {
   const { profile } = useAuth()
-  const { listings, commissions, tasks, buyers, loading, error, metrics } = useDashboardData()
+  const { listings, commissions, tasks, loading, error, metrics } = useDashboardData()
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null)
   const [selectedVendor, setSelectedVendor] = useState<any>(null)
   const [vendors, setVendors] = useState<any[]>([])
   const [loadingVendors, setLoadingVendors] = useState(true)
+  const [buyers, setBuyers] = useState<any[]>([])
   
   const navigate = useNavigate()
 
-  // Fetch vendors on component mount - moved before early returns
+  // Fetch vendors and buyers on component mount
   useEffect(() => {
-    const fetchVendors = async () => {
+    const fetchData = async () => {
+      if (!profile?.user_id) return;
+
       try {
-        const { data, error } = await supabase
+        // Fetch vendors
+        const { data: vendorsData, error: vendorsError } = await supabase
           .from('vendors')
           .select('*')
+          .eq('user_id', profile.user_id)
           .eq('is_preferred', true)
           .order('rating', { ascending: false, nullsFirst: false })
           .limit(5)
 
-        if (error) throw error
-        setVendors(data || [])
+        if (vendorsError) throw vendorsError
+        setVendors(vendorsData || [])
+
+        // Fetch buyers
+        const { data: buyersData, error: buyersError } = await supabase
+          .from('buyers')
+          .select('*')
+          .eq('user_id', profile.user_id)
+          .order('created_at', { ascending: false })
+
+        if (buyersError) throw buyersError
+        setBuyers(buyersData || [])
       } catch (error) {
-        console.error('Error fetching vendors:', error)
+        console.error('Error fetching data:', error)
       } finally {
         setLoadingVendors(false)
       }
     }
 
-    fetchVendors()
-  }, [])
+    fetchData()
+  }, [profile?.user_id])
 
   if (loading) {
     return (
@@ -125,6 +142,31 @@ export const Dashboard = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Smart AI Helper - Prominent placement */}
+        <div className="lg:col-span-3 mb-6">
+          <div className="flex justify-center">
+            <SmartAIHelper>
+              <div className="bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl p-6 border border-primary/20 shadow-elevated max-w-md w-full cursor-pointer hover:scale-105 transition-transform">
+                <div className="text-center space-y-4">
+                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
+                    <Bot className="h-8 w-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">Smart AI Helper</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Tell me about a client, property, or task and I'll organize it for you automatically.
+                    </p>
+                  </div>
+                  <div className="bg-background/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-2">Try saying:</p>
+                    <p className="text-xs italic">"Met Sarah at the open house, looking for 3-bed in downtown, budget 600k"</p>
+                  </div>
+                </div>
+              </div>
+            </SmartAIHelper>
+          </div>
+        </div>
+
         {/* Active Buyers / Listings Toggle Section */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
@@ -158,39 +200,83 @@ export const Dashboard = () => {
             
             <div className="flex items-center space-x-3">
               {mainView === 'buyers' ? (
-                <SmartAddDialog type="buyer" onSuccess={() => window.location.reload()}>
+                <ManualAddDialog type="buyer" onSuccess={() => window.location.reload()}>
                   <Button variant="hero" className="shadow-elevated">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Buyer
                   </Button>
-                </SmartAddDialog>
+                </ManualAddDialog>
               ) : (
-                <SmartAddDialog type="listing" onSuccess={() => window.location.reload()}>
+                <ManualAddDialog type="listing" onSuccess={() => window.location.reload()}>
                   <Button variant="hero" className="shadow-elevated">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Listing
                   </Button>
-                </SmartAddDialog>
+                </ManualAddDialog>
               )}
             </div>
           </div>
           
           {/* Content based on toggle */}
           {mainView === 'buyers' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {buyers.filter(b => b.status === 'active').slice(0, 4).map((buyer) => (
-                <BuyerCard 
-                  key={buyer.id} 
-                  buyer={buyer}
-                  onViewProfile={(buyer) => setSelectedBuyer(buyer)}
-                />
-              ))}
+            <div className="space-y-6">
+              {buyers.filter(b => b.status === 'active').length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {buyers.filter(b => b.status === 'active').slice(0, 4).map((buyer) => (
+                    <BuyerCard 
+                      key={buyer.id} 
+                      buyer={buyer}
+                      onViewProfile={(buyer) => setSelectedBuyer(buyer)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 space-y-4">
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                    <Users className="h-10 w-10 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-foreground mb-2">No Active Buyers Yet</h4>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Start building your client base by adding buyer profiles. Track their preferences, budget, and communication history.
+                    </p>
+                    <ManualAddDialog type="buyer" onSuccess={() => window.location.reload()}>
+                      <Button variant="hero" className="shadow-elevated">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Your First Buyer
+                      </Button>
+                    </ManualAddDialog>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="space-y-4">
-              {displayListings.map((listing) => (
-                <ListingCard key={listing.id} {...listing} />
-              ))}
+            <div className="space-y-6">
+              {displayListings.length > 0 ? (
+                <div className="space-y-4">
+                  {displayListings.map((listing) => (
+                    <ListingCard key={listing.id} {...listing} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 space-y-4">
+                  <div className="bg-primary/10 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                    <Home className="h-10 w-10 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-foreground mb-2">No Active Listings</h4>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Add your first property listing to start tracking market activity and managing your inventory.
+                    </p>
+                    <ManualAddDialog type="listing" onSuccess={() => window.location.reload()}>
+                      <Button variant="hero" className="shadow-elevated">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Your First Listing
+                      </Button>
+                    </ManualAddDialog>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -209,7 +295,7 @@ export const Dashboard = () => {
             <CardContent className="space-y-3 pt-0">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Active Clients</span>
-                <span className="font-semibold text-foreground">{metrics.activeBuyers + metrics.activeListings}</span>
+                <span className="font-semibold text-foreground">{buyers.filter(b => b.status === 'active').length + metrics.activeListings}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">YTD Commission</span>

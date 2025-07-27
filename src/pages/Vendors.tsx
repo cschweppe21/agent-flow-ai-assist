@@ -32,6 +32,7 @@ import {
   ArrowLeft,
   Sparkles
 } from "lucide-react"
+import { ManualAddDialog } from "@/components/ManualAddDialog"
 
 interface Vendor {
   id: string
@@ -276,13 +277,12 @@ const Vendors = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="hero" className="shadow-elevated">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Vendor
-                  </Button>
-                </DialogTrigger>
+              <ManualAddDialog type="vendor" onSuccess={fetchVendors}>
+                <Button variant="hero" className="shadow-elevated">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Vendor
+                </Button>
+              </ManualAddDialog>
               
               <Button
                 variant="outline"
@@ -291,146 +291,6 @@ const Vendors = () => {
               >
                 Back to Dashboard
               </Button>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Vendor</DialogTitle>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">Contact Name *</Label>
-                      <Input
-                        id="name"
-                        value={newVendor.name}
-                        onChange={(e) => setNewVendor({...newVendor, name: e.target.value})}
-                        placeholder="John Smith"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="business_name">Business Name</Label>
-                      <Input
-                        id="business_name"
-                        value={newVendor.business_name}
-                        onChange={(e) => setNewVendor({...newVendor, business_name: e.target.value})}
-                        placeholder="Smith Inspections LLC"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="category">Service Category *</Label>
-                    <Select value={newVendor.category} onValueChange={(value) => setNewVendor({...newVendor, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select service type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vendorCategories.map(category => (
-                          <div key={category.id}>
-                            {category.types.map(type => (
-                              <SelectItem key={type.value} value={type.value}>
-                                <span className="flex items-center">
-                                  <span className="mr-2">{type.icon}</span>
-                                  {type.label}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        value={newVendor.phone}
-                        onChange={(e) => setNewVendor({...newVendor, phone: e.target.value})}
-                        placeholder="(555) 123-4567"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={newVendor.email}
-                        onChange={(e) => setNewVendor({...newVendor, email: e.target.value})}
-                        placeholder="john@example.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="website">Website</Label>
-                    <Input
-                      id="website"
-                      value={newVendor.website}
-                      onChange={(e) => setNewVendor({...newVendor, website: e.target.value})}
-                      placeholder="https://example.com"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      value={newVendor.address}
-                      onChange={(e) => setNewVendor({...newVendor, address: e.target.value})}
-                      placeholder="123 Main St, City, State 12345"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="rating">Rating (1-5)</Label>
-                      <Input
-                        id="rating"
-                        type="number"
-                        min="1"
-                        max="5"
-                        step="0.1"
-                        value={newVendor.rating}
-                        onChange={(e) => setNewVendor({...newVendor, rating: e.target.value})}
-                        placeholder="4.5"
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2 mt-6">
-                      <Switch
-                        checked={newVendor.is_preferred}
-                        onCheckedChange={(checked) => setNewVendor({...newVendor, is_preferred: checked})}
-                      />
-                      <Label>Preferred Vendor</Label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={newVendor.notes}
-                      onChange={(e) => setNewVendor({...newVendor, notes: e.target.value})}
-                      placeholder="Additional notes about this vendor..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleAddVendor}
-                    disabled={!newVendor.name || !newVendor.category}
-                  >
-                    Add Vendor
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
             </div>
           </div>
         </div>
@@ -577,14 +437,15 @@ const Vendors = () => {
                       <div className="text-center py-8">
                         <category.icon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground mb-4">No {category.name.toLowerCase()} vendors yet</p>
-                        <Button
-                          variant="outline"
-                          onClick={() => setShowAddDialog(true)}
-                          className="text-xs"
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add {category.name} Vendor
-                        </Button>
+                        <ManualAddDialog type="vendor" onSuccess={fetchVendors}>
+                          <Button
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add {category.name} Vendor
+                          </Button>
+                        </ManualAddDialog>
                       </div>
                     )}
                   </CardContent>
@@ -601,10 +462,12 @@ const Vendors = () => {
                     ? "Try adjusting your filters or search terms"
                     : "Start building your professional network by adding your first vendor"}
                 </p>
-                <Button onClick={() => setShowAddDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Vendor
-                </Button>
+                <ManualAddDialog type="vendor" onSuccess={fetchVendors}>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Your First Vendor
+                  </Button>
+                </ManualAddDialog>
               </div>
             )}
           </div>
