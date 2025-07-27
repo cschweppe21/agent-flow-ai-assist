@@ -18,9 +18,11 @@ export const AuthForm = ({ onBack, initialMode = 'login' }: AuthFormProps) => {
   } = useAuth();
   const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     name: '',
     role: 'free' as 'free' | 'pro' | 'team'
   });
@@ -30,6 +32,14 @@ export const AuthForm = ({ onBack, initialMode = 'login' }: AuthFormProps) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+    
+    // Validate password confirmation for signup
+    if (!isLogin && formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+    
     try {
       if (isLogin) {
         const {
@@ -180,6 +190,34 @@ export const AuthForm = ({ onBack, initialMode = 'login' }: AuthFormProps) => {
                   </button>
                 </div>
               </div>
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-foreground">Confirm Password</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      id="confirmPassword" 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      placeholder="Confirm your password" 
+                      value={formData.confirmPassword} 
+                      onChange={e => setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value
+                      })} 
+                      className="pl-10 pr-10" 
+                      required={!isLogin}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+                      className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {!isLogin && (
                 <div className="space-y-2">
