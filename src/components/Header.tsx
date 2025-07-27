@@ -28,16 +28,6 @@ export const Header = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <SmartAIHelper>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-white/80 hover:text-white hover:bg-white/10 text-xs"
-              >
-                <Sparkles className="h-3 w-3 mr-1" />
-                AI
-              </Button>
-            </SmartAIHelper>
 
             {user && <div className="flex items-center space-x-3">
                 <Badge variant={roleBadgeVariants[profile?.role || 'free']} className="text-xs">

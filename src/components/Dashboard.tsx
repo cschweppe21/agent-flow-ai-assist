@@ -258,6 +258,20 @@ export const Dashboard = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Smart AI Helper */}
+          <div className="flex justify-center">
+            <SmartAIHelper>
+              <Button 
+                variant="hero" 
+                size="sm"
+                className="shadow-elevated"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                Smart Helper
+              </Button>
+            </SmartAIHelper>
+          </div>
+
           {/* Client Overview Tool */}
           <Card className="shadow-card bg-gradient-card border-border/50 cursor-pointer hover-scale" 
                 onClick={() => navigate('/clients')}>
