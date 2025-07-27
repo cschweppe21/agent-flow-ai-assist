@@ -137,6 +137,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "buyer_showings_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "past_clients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "buyer_showings_listing_id_fkey"
             columns: ["listing_id"]
             isOneToOne: false
@@ -199,6 +206,7 @@ export type Database = {
       commissions: {
         Row: {
           amount: number
+          buyer_id: string | null
           commission_type: string
           created_at: string
           date_earned: string
@@ -210,6 +218,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          buyer_id?: string | null
           commission_type?: string
           created_at?: string
           date_earned?: string
@@ -221,6 +230,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          buyer_id?: string | null
           commission_type?: string
           created_at?: string
           date_earned?: string
@@ -622,7 +632,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      past_clients: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_transaction_date: string | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          status: string | null
+          total_commission: number | null
+          total_transactions: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_user_plan_limits: {
