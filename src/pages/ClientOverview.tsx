@@ -45,6 +45,7 @@ const ClientOverview = () => {
   const [pastClients, setPastClients] = useState<PastClient[]>([])
   const [activeClients, setActiveClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
     if (!user) return
@@ -200,7 +201,7 @@ const ClientOverview = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="overview" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
@@ -290,11 +291,14 @@ const ClientOverview = () => {
               </Card>
 
               {/* Past Clients */}
-              <Card className="shadow-card bg-gradient-card border-border/50">
+              <Card className="shadow-card bg-gradient-card border-border/50 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveTab('relationships')}>
                 <CardHeader>
-                  <CardTitle className="flex items-center text-foreground text-lg">
-                    <Star className="h-5 w-5 mr-2 text-success" />
-                    Past Clients ({pastClients.length})
+                  <CardTitle className="flex items-center justify-between text-foreground text-lg">
+                    <div className="flex items-center">
+                      <Star className="h-5 w-5 mr-2 text-success" />
+                      Past Clients ({pastClients.length})
+                    </div>
+                    <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
