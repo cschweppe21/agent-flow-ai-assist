@@ -35,16 +35,19 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an AI assistant that categorizes real estate CRM input. Analyze the text and determine if it describes:
+            content: `You are an AI assistant that categorizes real estate CRM input. Analyze the text and determine the PRIMARY intent:
             
             1. "buyer" - A potential buyer or client interested in purchasing property (includes contact info, budget, preferences)
-            2. "seller" - A client who is selling property or wants to list their property (includes listing details, property info)
+            2. "listing" - Creating a property listing with specific address and property details
             3. "vendor" - A service provider, contractor, photographer, inspector, or business contact
-            4. "task" - A standalone to-do item, appointment, reminder, or action (not related to creating client/vendor profiles)
+            4. "task" - A standalone to-do item, appointment, reminder, or action
             
-            IMPORTANT: If the text mentions both a client AND a task (like "Add John as client and remind me to call"), categorize as the client type (buyer/seller) since the client profile is the primary intent.
+            IMPORTANT RULES:
+            - If text mentions adding someone as a "client" but includes selling/listing info WITHOUT a specific property address, categorize as "buyer"
+            - Only categorize as "listing" if there's a specific property address mentioned
+            - If multiple intents exist, choose the PRIMARY one (usually the first mentioned or most detailed)
             
-            Return only the category name as a single word: "buyer", "seller", "vendor", or "task".`
+            Return only the category name as a single word: "buyer", "listing", "vendor", or "task".`
           },
           {
             role: 'user',
@@ -60,7 +63,7 @@ serve(async (req) => {
               properties: {
                  category: {
                    type: "string",
-                   enum: ["buyer", "seller", "vendor", "task"],
+                   enum: ["buyer", "listing", "vendor", "task"],
                    description: "The determined category"
                  },
                 confidence: {

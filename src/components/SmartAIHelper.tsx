@@ -53,9 +53,6 @@ export const SmartAIHelper = ({ children }: SmartAIHelperProps) => {
         case 'buyer':
           successMessage = `Created buyer profile for ${parseData.data.name}`;
           break;
-        case 'seller':
-          successMessage = `Created listing for ${parseData.data.address}`;
-          break;
         case 'vendor':
           successMessage = `Added vendor ${parseData.data.name} to your contacts`;
           break;
