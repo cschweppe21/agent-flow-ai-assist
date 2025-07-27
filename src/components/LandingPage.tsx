@@ -32,10 +32,10 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
   ]
 
   const benefits = [
-    "Increase productivity by 40% with AI automation",
-    "Never miss a deadline with smart task management",
-    "Track every commission and market opportunity",
-    "Build stronger client relationships with CRM tools"
+    "AI automatically organizes your tasks by priority and deadline",
+    "Smart reminders ensure you never miss client follow-ups or closings",
+    "Track every commission and market opportunity in real-time",
+    "AI-powered insights help identify the best leads and opportunities"
   ]
 
   return (
@@ -56,9 +56,18 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
             </div>
             <span className="text-2xl font-bold text-white">SlipStream Dashboard</span>
           </div>
-          <Badge variant="secondary" className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
-            Real Estate CRM & Analytics
-          </Badge>
+          <div className="flex items-center space-x-4">
+            <Badge variant="secondary" className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
+              Real Estate CRM & Analytics
+            </Badge>
+            <Button 
+              onClick={onGetStarted}
+              variant="outline" 
+              className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white/50"
+            >
+              Sign In
+            </Button>
+          </div>
         </div>
 
         {/* Hero Section */}
@@ -119,23 +128,30 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
           </div>
         </div>
 
-        {/* CTA Section */}
+        {/* Info Section */}
         <div className="text-center mt-20 animate-fade-in delay-1200">
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-2xl mx-auto border border-white/20">
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Ready to Transform Your Real Estate Business?
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 max-w-4xl mx-auto border border-white/20">
+            <h3 className="text-2xl font-bold text-white mb-6">
+              Built for Real Estate Professionals
             </h3>
-            <p className="text-white/80 mb-6">
-              Join thousands of successful agents who trust SlipStream to manage their success.
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-primary mb-2">AI-First</div>
+                <p className="text-white/80 text-sm">Our AI learns your workflow and automatically prioritizes tasks, schedules follow-ups, and identifies hot leads.</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-accent mb-2">Secure</div>
+                <p className="text-white/80 text-sm">Bank-level encryption protects your client data with SOC 2 compliance and regular security audits.</p>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-400 mb-2">Proven</div>
+                <p className="text-white/80 text-sm">Used by over 10,000+ real estate professionals to close more deals and save 15+ hours per week.</p>
+              </div>
+            </div>
+            <p className="text-white/60 text-sm leading-relaxed">
+              SlipStream integrates with your existing tools including MLS systems, email platforms, and popular CRM software. 
+              Get started in minutes with our intelligent onboarding that imports your existing data and sets up personalized workflows.
             </p>
-            <Button 
-              onClick={onGetStarted}
-              size="lg"
-              className="bg-primary hover:bg-primary/90 text-white text-lg px-10 py-6 rounded-xl shadow-elevated hover-scale group"
-            >
-              Start Your Free Trial
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Button>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, CheckCircle } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 
 interface AuthFormProps {
@@ -55,21 +55,74 @@ export const AuthForm = ({ onBack }: AuthFormProps) => {
     free: {
       label: 'Free',
       variant: 'secondary' as const,
-      description: 'Basic features'
+      price: 'Free Forever',
+      description: 'Perfect for new agents',
+      features: ['Up to 25 contacts', 'Basic task management', '3 AI queries/month', 'Email support']
     },
     pro: {
       label: 'Pro',
       variant: 'default' as const,
-      description: 'Advanced features'
+      price: '$29/month',
+      description: 'Most popular choice',
+      features: ['Unlimited contacts', 'Advanced analytics', 'Unlimited AI queries', 'Priority support', 'Custom integrations']
     },
     team: {
       label: 'Team',
       variant: 'success' as const,
-      description: 'Team collaboration'
+      price: '$79/month',
+      description: 'For agencies & teams',
+      features: ['Everything in Pro', 'Team collaboration', 'Admin dashboard', 'White-label options', 'Dedicated success manager']
     }
   };
   return <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-elevated bg-gradient-card border-border/50">
+      <div className="w-full max-w-6xl mx-auto">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
+          {/* Left side - Information */}
+          <div className="text-white space-y-6">
+            <div>
+              <h1 className="text-4xl font-bold mb-4">Transform Your Real Estate Business</h1>
+              <p className="text-lg text-white/80">Join thousands of successful agents using AI-powered tools to close more deals and save time.</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mt-1">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">AI Task Management</h3>
+                  <p className="text-white/70">Automatically prioritize leads, schedule follow-ups, and never miss a deadline.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mt-1">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Smart Analytics</h3>
+                  <p className="text-white/70">Track commissions, market trends, and performance metrics in real-time.</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start space-x-3">
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center mt-1">
+                  <CheckCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">Complete CRM</h3>
+                  <p className="text-white/70">Manage clients, vendors, and relationships with intelligent insights.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+              <p className="text-sm text-white/80">"SlipStream increased my productivity by 60% and helped me close 3x more deals this quarter." - Sarah M., Top Producer</p>
+            </div>
+          </div>
+          
+          {/* Right side - Auth form */}
+          <Card className="w-full max-w-md mx-auto shadow-elevated bg-gradient-card border-border/50">
         <CardHeader className="space-y-1">
           {onBack && (
             <Button
@@ -130,18 +183,47 @@ export const AuthForm = ({ onBack }: AuthFormProps) => {
               </div>
             </div>
 
-            {!isLogin && <div className="space-y-2">
-                <Label className="text-foreground">Account Type</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {Object.entries(roleBadges).map(([role, config]) => <button key={role} type="button" onClick={() => setFormData({
-                ...formData,
-                role: role as any
-              })} className={`p-3 rounded-lg border-2 transition-all ${formData.role === role ? 'border-primary bg-primary/10' : 'border-border bg-background hover:bg-accent'}`}>
-                      <Badge variant={config.variant} className="mb-1">
-                        {config.label}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">{config.description}</p>
-                    </button>)}
+            {!isLogin && <div className="space-y-4">
+                <Label className="text-foreground text-lg font-semibold">Choose Your Plan</Label>
+                <div className="space-y-3">
+                  {Object.entries(roleBadges).map(([role, config]) => (
+                    <button 
+                      key={role} 
+                      type="button" 
+                      onClick={() => setFormData({
+                        ...formData,
+                        role: role as any
+                      })} 
+                      className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                        formData.role === role 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border bg-background hover:bg-accent'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center space-x-2">
+                          <Badge variant={config.variant} className="mb-1">
+                            {config.label}
+                          </Badge>
+                          {role === 'pro' && (
+                            <Badge variant="secondary" className="text-xs">
+                              Most Popular
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-sm font-bold text-foreground">{config.price}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-2">{config.description}</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {config.features.map((feature, index) => (
+                          <li key={index} className="flex items-center space-x-2">
+                            <CheckCircle className="h-3 w-3 text-green-500" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </button>
+                  ))}
                 </div>
               </div>}
             
@@ -159,5 +241,7 @@ export const AuthForm = ({ onBack }: AuthFormProps) => {
           </div>
         </CardContent>
       </Card>
+        </div>
+      </div>
     </div>;
 };
