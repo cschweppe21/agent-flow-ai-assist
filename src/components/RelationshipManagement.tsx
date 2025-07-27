@@ -35,26 +35,43 @@ export const RelationshipManagement = ({ clientId, clientName }: RelationshipMan
   const [clientRatings, setClientRatings] = useState<{[key: string]: number}>({});
   const { toast } = useToast();
 
-  // Fetch past clients
+  // Fetch past clients and their ratings
   useEffect(() => {
     if (!user) return;
 
-    const fetchPastClients = async () => {
+    const fetchPastClientsAndRatings = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch past clients
+        const { data: clientsData, error: clientsError } = await supabase
           .from('past_clients')
           .select('*')
           .eq('user_id', user.id)
           .order('last_transaction_date', { ascending: false });
 
-        if (error) throw error;
-        setPastClients(data || []);
+        if (clientsError) throw clientsError;
+        setPastClients(clientsData || []);
+
+        // Fetch existing ratings
+        const { data: ratingsData, error: ratingsError } = await supabase
+          .from('client_ratings')
+          .select('client_id, rating')
+          .eq('user_id', user.id);
+
+        if (ratingsError) throw ratingsError;
+
+        // Convert ratings array to object for easy lookup
+        const ratingsMap = (ratingsData || []).reduce((acc, rating) => {
+          acc[rating.client_id] = rating.rating;
+          return acc;
+        }, {} as {[key: string]: number});
+
+        setClientRatings(ratingsMap);
       } catch (error) {
-        console.error('Error fetching past clients:', error);
+        console.error('Error fetching past clients and ratings:', error);
       }
     };
 
-    fetchPastClients();
+    fetchPastClientsAndRatings();
   }, [user]);
 
   // Filter past clients based on search term
@@ -63,13 +80,45 @@ export const RelationshipManagement = ({ clientId, clientName }: RelationshipMan
     (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  // Rate a client (5-star system)
-  const rateClient = (clientId: string, rating: number) => {
-    setClientRatings(prev => ({ ...prev, [clientId]: rating }));
-    toast({
-      title: "Client Rated",
-      description: `Rated ${rating} stars for ease of working together`,
-    });
+  // Rate a client (5-star system) - saves to database
+  const rateClient = async (clientId: string, rating: number) => {
+    try {
+      // Update local state immediately for responsiveness
+      setClientRatings(prev => ({ ...prev, [clientId]: rating }));
+
+      // Save to database using upsert (insert or update)
+      const { error } = await supabase
+        .from('client_ratings')
+        .upsert({
+          user_id: user?.id,
+          client_id: clientId,
+          rating: rating
+        }, {
+          onConflict: 'user_id, client_id'
+        });
+
+      if (error) {
+        // Revert local state if database save failed
+        setClientRatings(prev => {
+          const newRatings = { ...prev };
+          delete newRatings[clientId];
+          return newRatings;
+        });
+        throw error;
+      }
+
+      toast({
+        title: "Client Rated",
+        description: `Rated ${rating} stars for ease of working together`,
+      });
+    } catch (error) {
+      console.error('Error saving rating:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save rating. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Get highly rated clients for recommendations
