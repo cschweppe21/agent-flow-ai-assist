@@ -37,12 +37,14 @@ serve(async (req) => {
             role: 'system',
             content: `You are an AI assistant that categorizes real estate CRM input. Analyze the text and determine if it describes:
             
-            1. "buyer" - A potential buyer, client, or someone interested in purchasing property
-            2. "vendor" - A service provider, contractor, photographer, inspector, or business contact
-            3. "task" - A to-do item, appointment, reminder, or action that needs to be completed
-            4. "listing" - A property listing, house for sale, or real estate inventory item
+            1. "buyer" - A potential buyer or client interested in purchasing property (includes contact info, budget, preferences)
+            2. "seller" - A client who is selling property or wants to list their property (includes listing details, property info)
+            3. "vendor" - A service provider, contractor, photographer, inspector, or business contact
+            4. "task" - A standalone to-do item, appointment, reminder, or action (not related to creating client/vendor profiles)
             
-            Return only the category name as a single word: "buyer", "vendor", "task", or "listing".`
+            IMPORTANT: If the text mentions both a client AND a task (like "Add John as client and remind me to call"), categorize as the client type (buyer/seller) since the client profile is the primary intent.
+            
+            Return only the category name as a single word: "buyer", "seller", "vendor", or "task".`
           },
           {
             role: 'user',
@@ -56,11 +58,11 @@ serve(async (req) => {
             schema: {
               type: "object",
               properties: {
-                category: {
-                  type: "string",
-                  enum: ["buyer", "vendor", "task", "listing"],
-                  description: "The determined category"
-                },
+                 category: {
+                   type: "string",
+                   enum: ["buyer", "seller", "vendor", "task"],
+                   description: "The determined category"
+                 },
                 confidence: {
                   type: "number",
                   description: "Confidence score between 0 and 1"

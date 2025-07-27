@@ -89,6 +89,24 @@ serve(async (req) => {
         required: ["title"],
         additionalProperties: false
       };
+    } else if (type === 'seller') {
+      systemPrompt = `You are an AI assistant that extracts seller/listing information from natural language descriptions. Extract the following information and return it as JSON. If information is not provided, use null for that field.`;
+      
+      jsonSchema = {
+        type: "object",
+        properties: {
+          address: { type: "string", description: "Full property address" },
+          price: { type: "number", description: "Listing price in dollars" },
+          bedrooms: { type: ["integer", "null"], description: "Number of bedrooms" },
+          bathrooms: { type: ["number", "null"], description: "Number of bathrooms" },
+          square_feet: { type: ["integer", "null"], description: "Square footage" },
+          status: { type: "string", enum: ["active", "pending", "sold", "withdrawn"], default: "active" },
+          description: { type: ["string", "null"], description: "Property description" },
+          mls_number: { type: ["string", "null"], description: "MLS number if provided" }
+        },
+        required: ["address", "price", "status"],
+        additionalProperties: false
+      };
     } else if (type === 'listing') {
       systemPrompt = `You are an AI assistant that extracts listing information from natural language descriptions. Extract the following information and return it as JSON. If information is not provided, use null for that field.`;
       
@@ -188,6 +206,23 @@ serve(async (req) => {
       
       if (error) {
         console.error('Database error inserting task:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+      result = data;
+    } else if (type === 'seller') {
+      // Set listing_date to today if not provided
+      if (!extractedData.listing_date) {
+        extractedData.listing_date = new Date().toISOString().split('T')[0];
+      }
+      
+      const { data, error } = await supabase
+        .from('listings')
+        .insert([extractedData])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database error inserting seller listing:', error);
         throw new Error(`Database error: ${error.message}`);
       }
       result = data;
