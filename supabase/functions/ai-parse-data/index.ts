@@ -106,7 +106,16 @@ async function processBuyerPrompt(prompt: string, userId: string, supabase: any)
   });
 
   const data = await response.json();
-  const extractedData = JSON.parse(data.choices[0].message.content);
+  let content = data.choices[0].message.content;
+  
+  // Remove markdown code blocks if present
+  if (content.startsWith('```json')) {
+    content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+  } else if (content.startsWith('```')) {
+    content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+  }
+  
+  const extractedData = JSON.parse(content);
   console.log('Extracted data:', extractedData);
 
   const { data: buyer, error } = await supabase
@@ -163,7 +172,16 @@ async function processListingPrompt(prompt: string, userId: string, supabase: an
   });
 
   const data = await response.json();
-  const extractedData = JSON.parse(data.choices[0].message.content);
+  let content = data.choices[0].message.content;
+  
+  // Remove markdown code blocks if present
+  if (content.startsWith('```json')) {
+    content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+  } else if (content.startsWith('```')) {
+    content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+  }
+  
+  const extractedData = JSON.parse(content);
   console.log('Extracted data:', extractedData);
 
   const { data: listing, error } = await supabase
@@ -221,7 +239,16 @@ async function processVendorPrompt(prompt: string, userId: string, supabase: any
   });
 
   const data = await response.json();
-  const extractedData = JSON.parse(data.choices[0].message.content);
+  let content = data.choices[0].message.content;
+  
+  // Remove markdown code blocks if present
+  if (content.startsWith('```json')) {
+    content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+  } else if (content.startsWith('```')) {
+    content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+  }
+  
+  const extractedData = JSON.parse(content);
   console.log('Extracted data:', extractedData);
 
   const { data: vendor, error } = await supabase
@@ -276,7 +303,16 @@ async function processTaskPrompt(prompt: string, userId: string, supabase: any) 
   });
 
   const data = await response.json();
-  const extractedData = JSON.parse(data.choices[0].message.content);
+  let content = data.choices[0].message.content;
+  
+  // Remove markdown code blocks if present
+  if (content.startsWith('```json')) {
+    content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+  } else if (content.startsWith('```')) {
+    content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+  }
+  
+  const extractedData = JSON.parse(content);
   console.log('Extracted data:', extractedData);
 
   const { data: task, error } = await supabase
@@ -328,7 +364,16 @@ async function processCloseBuyerPrompt(prompt: string, userId: string, supabase:
   });
 
   const data = await response.json();
-  const extractedData = JSON.parse(data.choices[0].message.content);
+  let content = data.choices[0].message.content;
+  
+  // Remove markdown code blocks if present
+  if (content.startsWith('```json')) {
+    content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+  } else if (content.startsWith('```')) {
+    content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+  }
+  
+  const extractedData = JSON.parse(content);
   console.log('Extracted close buyer data:', extractedData);
 
   // Find the buyer by name

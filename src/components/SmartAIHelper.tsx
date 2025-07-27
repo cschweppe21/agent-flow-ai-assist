@@ -51,19 +51,19 @@ export const SmartAIHelper = ({ children }: SmartAIHelperProps) => {
       let successMessage = '';
       switch (category) {
         case 'buyer':
-          successMessage = `Created buyer profile for ${parseData.data.name}`;
+          successMessage = `Created buyer profile for ${parseData.extractedData.name}`;
           break;
         case 'vendor':
-          successMessage = `Added vendor ${parseData.data.name} to your contacts`;
+          successMessage = `Added vendor ${parseData.extractedData.name} to your contacts`;
           break;
         case 'task':
-          successMessage = `Added task "${parseData.data.title}" to your to-do list`;
+          successMessage = `Added task "${parseData.extractedData.title}" to your to-do list`;
           break;
         case 'listing':
-          successMessage = `Created listing for ${parseData.data.address}`;
+          successMessage = `Created listing for ${parseData.extractedData.address}`;
           break;
         case 'close_buyer':
-          successMessage = `Closed ${parseData.data.buyer.name}'s profile with ${parseData.data.commission_amount ? `$${parseData.data.commission_amount.toLocaleString()} commission` : 'commission details'}`;
+          successMessage = `Closed ${parseData.extractedData.buyer.name}'s profile with ${parseData.extractedData.commission_amount ? `$${parseData.extractedData.commission_amount.toLocaleString()} commission` : 'commission details'}`;
           break;
         default:
           successMessage = 'Successfully processed your input';
