@@ -9,13 +9,14 @@ import { useAuth } from "@/components/AuthProvider";
 
 interface AuthFormProps {
   onBack?: () => void;
+  initialMode?: 'login' | 'signup';
 }
-export const AuthForm = ({ onBack }: AuthFormProps) => {
+export const AuthForm = ({ onBack, initialMode = 'login' }: AuthFormProps) => {
   const {
     signIn,
     signUp
   } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',

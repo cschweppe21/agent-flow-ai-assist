@@ -8,6 +8,7 @@ import { useState } from "react"
 const Index = () => {
   const { isAuthenticated, isLoading } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
 
   if (isLoading) {
     return (
@@ -22,9 +23,12 @@ const Index = () => {
 
   if (!isAuthenticated) {
     if (!showAuth) {
-      return <LandingPage onGetStarted={() => setShowAuth(true)} />
+      return <LandingPage onGetStarted={() => {
+        setAuthMode('signup')
+        setShowAuth(true)
+      }} />
     }
-    return <AuthForm onBack={() => setShowAuth(false)} />
+    return <AuthForm onBack={() => setShowAuth(false)} initialMode={authMode} />
   }
 
   return (
