@@ -62,6 +62,9 @@ export const SmartAIHelper = ({ children }: SmartAIHelperProps) => {
         case 'listing':
           successMessage = `Created listing for ${parseData.data.address}`;
           break;
+        case 'close_buyer':
+          successMessage = `Closed ${parseData.data.buyer.name}'s profile with ${parseData.data.commission_amount ? `$${parseData.data.commission_amount.toLocaleString()} commission` : 'commission details'}`;
+          break;
         default:
           successMessage = 'Successfully processed your input';
       }

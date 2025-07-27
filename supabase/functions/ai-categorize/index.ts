@@ -38,16 +38,18 @@ serve(async (req) => {
             content: `You are an AI assistant that categorizes real estate CRM input. Analyze the text and determine the PRIMARY intent:
             
             1. "buyer" - A potential buyer or client interested in purchasing property (includes contact info, budget, preferences)
-            2. "listing" - Creating a property listing with specific address and property details
+            2. "listing" - Creating a property listing with specific address and property details  
             3. "vendor" - A service provider, contractor, photographer, inspector, or business contact
             4. "task" - A standalone to-do item, appointment, reminder, or action
+            5. "close_buyer" - Closing/completing a buyer's deal (includes commission info, completion notes, deal went through)
             
             IMPORTANT RULES:
             - If text mentions adding someone as a "client" but includes selling/listing info WITHOUT a specific property address, categorize as "buyer"
             - Only categorize as "listing" if there's a specific property address mentioned
+            - Use "close_buyer" for text about finishing deals, earning commission, closing profiles, completed sales
             - If multiple intents exist, choose the PRIMARY one (usually the first mentioned or most detailed)
             
-            Return only the category name as a single word: "buyer", "listing", "vendor", or "task".`
+            Return only the category name as a single word: "buyer", "listing", "vendor", "task", or "close_buyer".`
           },
           {
             role: 'user',
@@ -63,7 +65,7 @@ serve(async (req) => {
               properties: {
                  category: {
                    type: "string",
-                   enum: ["buyer", "listing", "vendor", "task"],
+                    enum: ["buyer", "listing", "vendor", "task", "close_buyer"],
                    description: "The determined category"
                  },
                 confidence: {

@@ -1,205 +1,69 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Header } from "@/components/Header"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/components/AuthProvider"
-import { useToast } from "@/hooks/use-toast"
-import { useMockDashboardData } from "@/hooks/useMockDashboardData"
-import { 
-  Users, 
-  DollarSign, 
-  Search, 
-  Filter,
-  TrendingUp,
-  Calendar,
-  Home,
-  CheckCircle,
-  Target
-} from "lucide-react"
-import { 
-  ResponsiveContainer, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  BarChart, 
-  Bar 
-} from "recharts"
+import { Users, DollarSign, TrendingUp, Phone, Mail, Calendar, Star } from "lucide-react"
 
-interface Commission {
-  id: string
-  amount: number
-  date_earned: string
-  commission_type: 'listing' | 'buying' | 'referral' | 'other'
-  description?: string
-  listing_id?: string
-}
-
-interface PreviousClient {
+interface PastClient {
   id: string
   name: string
   email?: string
   phone?: string
-  client_type: 'buyer' | 'seller'
-  property_address?: string
-  transaction_date: string
-  commission_amount?: number
-  status: 'closed' | 'canceled'
+  status: string
   notes?: string
+  created_at: string
+  updated_at: string
+  total_commission: number
+  total_transactions: number
+  last_transaction_date?: string
 }
 
 const ClientOverview = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { toast } = useToast()
-  const { buyers, listings } = useMockDashboardData()
-  
-  const [activeTab, setActiveTab] = useState("overview")
-  const [commissions, setCommissions] = useState<Commission[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterType, setFilterType] = useState<'all' | 'buyer' | 'seller'>('all')
+  const [pastClients, setPastClients] = useState<PastClient[]>([])
+  const [activeClients, setActiveClients] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user) {
-      fetchCommissions()
+    if (!user) return
+
+    const fetchClientData = async () => {
+      try {
+        // Fetch past clients (closed/inactive buyers)
+        const { data: pastClientsData, error: pastError } = await supabase
+          .from('past_clients')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('last_transaction_date', { ascending: false, nullsFirst: false })
+
+        if (pastError) throw pastError
+
+        // Fetch active clients  
+        const { data: activeClientsData, error: activeError } = await supabase
+          .from('buyers')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+
+        if (activeError) throw activeError
+
+        setPastClients(pastClientsData || [])
+        setActiveClients(activeClientsData || [])
+      } catch (error) {
+        console.error('Error fetching client data:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-    setLoading(false)
+
+    fetchClientData()
   }, [user])
-
-  const fetchCommissions = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('commissions')
-        .select('*')
-        .order('date_earned', { ascending: false })
-
-      if (error) throw error
-      setCommissions(data?.map(commission => ({
-        ...commission,
-        commission_type: commission.commission_type as 'listing' | 'buying' | 'referral' | 'other'
-      })) || [])
-    } catch (error) {
-      console.error('Error fetching commissions:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load commission data.",
-        variant: "destructive"
-      })
-    }
-  }
-
-  // Get closed buyers and listings from actual data
-  const closedBuyers = buyers.filter(buyer => buyer.status === 'closed').map(buyer => ({
-    id: `buyer-${buyer.id}`,
-    name: buyer.name,
-    email: buyer.email,
-    phone: buyer.phone,
-    client_type: 'buyer' as const,
-    property_address: 'Various Properties',
-    transaction_date: buyer.updated_at || buyer.created_at,
-    commission_amount: buyer.budget_max ? Math.round(buyer.budget_max * 0.025) : undefined, // 2.5% estimate
-    status: 'closed' as const,
-    notes: buyer.notes
-  }))
-
-  const closedListings = listings.filter(listing => listing.status === 'sold').map(listing => ({
-    id: `listing-${listing.id}`,
-    name: 'Property Seller',
-    client_type: 'seller' as const,
-    property_address: listing.address,
-    transaction_date: listing.sale_date || listing.listing_date,
-    commission_amount: Math.round(listing.price * 0.03), // 3% commission estimate
-    status: 'closed' as const,
-    notes: listing.description
-  }))
-
-  const previousClients = [...closedBuyers, ...closedListings].sort((a, b) => 
-    new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
-  )
-
-  // Calculate commission metrics from closed clients data
-  const currentYear = new Date().getFullYear()
-  
-  // Get commissions from closed clients
-  const closedBuyersThisYear = closedBuyers.filter(buyer => 
-    new Date(buyer.transaction_date).getFullYear() === currentYear
-  )
-  const closedListingsThisYear = closedListings.filter(listing => 
-    new Date(listing.transaction_date).getFullYear() === currentYear
-  )
-
-  const listingCommissionsFromClients = closedListingsThisYear.map(listing => ({
-    id: listing.id,
-    amount: listing.commission_amount || 0,
-    date_earned: listing.transaction_date,
-    commission_type: 'listing' as const,
-    description: `Commission from ${listing.property_address}`
-  }))
-
-  const buyingCommissionsFromClients = closedBuyersThisYear.map(buyer => ({
-    id: buyer.id,
-    amount: buyer.commission_amount || 0,
-    date_earned: buyer.transaction_date,
-    commission_type: 'buying' as const,
-    description: `Commission from ${buyer.name}`
-  }))
-
-  // Combine all commissions from closed clients
-  const allCommissionsFromClients = [...listingCommissionsFromClients, ...buyingCommissionsFromClients]
-  
-  const listingTotal = listingCommissionsFromClients.reduce((sum, c) => sum + c.amount, 0)
-  const buyingTotal = buyingCommissionsFromClients.reduce((sum, c) => sum + c.amount, 0)
-  const totalCommissions = listingTotal + buyingTotal
-
-  // Monthly chart data for past 12 months using closed clients data
-  const monthlyData = []
-  for (let i = 11; i >= 0; i--) {
-    const date = new Date()
-    date.setMonth(date.getMonth() - i)
-    
-    const monthCommissions = allCommissionsFromClients.filter(c => {
-      const commDate = new Date(c.date_earned)
-      return commDate.getMonth() === date.getMonth() && 
-             commDate.getFullYear() === date.getFullYear()
-    })
-    
-    monthlyData.push({
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
-      total: monthCommissions.reduce((sum, c) => sum + c.amount, 0),
-      listing: monthCommissions.filter(c => c.commission_type === 'listing').reduce((sum, c) => sum + c.amount, 0),
-      buying: monthCommissions.filter(c => c.commission_type === 'buying').reduce((sum, c) => sum + c.amount, 0)
-    })
-  }
-
-  // Pie chart data
-  const pieData = [
-    { name: 'Listing Commissions', value: listingTotal, color: '#8B5CF6' },
-    { name: 'Buying Commissions', value: buyingTotal, color: '#06B6D4' },
-  ]
-
-  // Filter previous clients
-  const filteredClients = previousClients.filter(client => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch = client.name.toLowerCase().includes(searchLower) ||
-                         client.property_address?.toLowerCase().includes(searchLower) ||
-                         (client.client_type === 'buyer' && client.email?.toLowerCase().includes(searchLower))
-    const matchesType = filterType === 'all' || client.client_type === filterType
-    return matchesSearch && matchesType
-  })
-
-  const closedClients = filteredClients
-  const canceledClients: PreviousClient[] = [] // All our data is closed, no canceled data yet
 
   if (loading) {
     return (
@@ -215,421 +79,220 @@ const ClientOverview = () => {
     )
   }
 
+  const totalCommissionEarned = pastClients.reduce((sum, client) => sum + client.total_commission, 0)
+  const totalTransactions = pastClients.reduce((sum, client) => sum + client.total_transactions, 0)
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">Client Overview</h1>
-              <p className="text-muted-foreground">Commission tracking and previous client management</p>
+              <p className="text-muted-foreground">Manage your active and past clients</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="shadow-elevated"
-              >
-                Back to Dashboard
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="shadow-elevated"
+            >
+              Back to Dashboard
+            </Button>
           </div>
         </div>
 
-        {/* Key Metrics Cards */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-sm text-muted-foreground">
-                <DollarSign className="h-4 w-4 mr-2 text-primary" />
-                YTD Commission
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                ${totalCommissions.toLocaleString()}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Active Clients</p>
+                  <p className="text-2xl font-bold text-primary">{activeClients.length}</p>
+                </div>
+                <Users className="h-8 w-8 text-primary" />
               </div>
-              <Badge variant="secondary" className="bg-success/10 text-success mt-2 text-xs">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                +18% vs last year
-              </Badge>
             </CardContent>
           </Card>
 
           <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-sm text-muted-foreground">
-                <Users className="h-4 w-4 mr-2 text-primary" />
-                Closed Clients
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {closedClients.length}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Past Clients</p>
+                  <p className="text-2xl font-bold text-success">{pastClients.length}</p>
+                </div>
+                <Calendar className="h-8 w-8 text-success" />
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                Total completed transactions
-              </p>
             </CardContent>
           </Card>
 
           <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-sm text-muted-foreground">
-                <Home className="h-4 w-4 mr-2 text-primary" />
-                Listing Sales
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                ${listingTotal.toLocaleString()}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Commission</p>
+                  <p className="text-2xl font-bold text-success">${totalCommissionEarned.toLocaleString()}</p>
+                </div>
+                <DollarSign className="h-8 w-8 text-success" />
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {listingCommissionsFromClients.length} transactions
-              </p>
             </CardContent>
           </Card>
 
           <Card className="shadow-card bg-gradient-card border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-sm text-muted-foreground">
-                <CheckCircle className="h-4 w-4 mr-2 text-primary" />
-                Buyer Sales
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                ${buyingTotal.toLocaleString()}
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Transactions</p>
+                  <p className="text-2xl font-bold text-warning">{totalTransactions}</p>
+                </div>
+                <TrendingUp className="h-8 w-8 text-warning" />
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
-                {buyingCommissionsFromClients.length} transactions
-              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Commission Analytics</TabsTrigger>
-            <TabsTrigger value="clients">Previous Clients</TabsTrigger>
-            <TabsTrigger value="breakdown">Transaction History</TabsTrigger>
-          </TabsList>
-
-          {/* Commission Analytics Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-2 text-primary" />
-                    12-Month Commission Trend
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={monthlyData}>
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, '']} />
-                      <Line 
-                        type="monotone" 
-                        dataKey="total" 
-                        stroke="#8B5CF6" 
-                        strokeWidth={3}
-                        dot={{ fill: '#8B5CF6' }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="h-5 w-5 mr-2 text-primary" />
-                    Commission Split
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, '']} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Previous Clients Tab */}
-          <TabsContent value="clients" className="space-y-6">
-            {/* Search and Filter */}
-            <Card className="shadow-card bg-gradient-card border-border/50">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search clients, properties, or emails..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Filter className="h-4 w-4 text-muted-foreground" />
-                    <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                      <SelectTrigger className="w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Clients</SelectItem>
-                        <SelectItem value="buyer">Buyers Only</SelectItem>
-                        <SelectItem value="seller">Sellers Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Client Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total Clients</p>
-                      <p className="text-2xl font-bold text-foreground">{filteredClients.length}</p>
-                    </div>
-                    <Users className="h-8 w-8 text-primary/60" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Successful Closings</p>
-                      <p className="text-2xl font-bold text-success">{closedClients.length}</p>
-                    </div>
-                    <CheckCircle className="h-8 w-8 text-success/60" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Canceled/Withdrawn</p>
-                      <p className="text-2xl font-bold text-destructive">{canceledClients.length}</p>
-                    </div>
-                    <Calendar className="h-8 w-8 text-destructive/60" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Client List */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {filteredClients.length > 0 ? (
-                filteredClients.map((client) => (
-                  <Card key={client.id} className="shadow-card bg-gradient-card border-border/50 hover-scale">
-                    <CardContent className="pt-6">
-                      <div className="flex justify-between items-start mb-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Active Clients */}
+          <Card className="shadow-card bg-gradient-card border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center text-foreground text-lg">
+                <Users className="h-5 w-5 mr-2 text-primary" />
+                Active Clients ({activeClients.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {activeClients.length > 0 ? (
+                <div className="space-y-4">
+                  {activeClients.slice(0, 10).map((client) => (
+                    <div key={client.id} className="p-4 bg-background/50 rounded-lg border border-border/50">
+                      <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h3 className="font-semibold text-foreground">{client.name}</h3>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge 
-                              variant={client.client_type === 'buyer' ? 'default' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {client.client_type === 'buyer' ? '👥 Buyer' : '🏠 Seller'}
-                            </Badge>
-                            <Badge 
-                              variant={client.status === 'closed' ? 'success' : 'destructive'}
-                              className="text-xs"
-                            >
-                              {client.status === 'closed' ? '✅ Closed' : '❌ Canceled'}
-                            </Badge>
-                          </div>
+                          <h4 className="font-semibold text-foreground">{client.name}</h4>
+                          <Badge variant="secondary" className="text-xs mt-1">
+                            {client.status.toUpperCase()}
+                          </Badge>
                         </div>
-                        {client.commission_amount && (
-                          <div className="text-right">
-                            <p className="text-sm font-semibold text-success">
-                              ${client.commission_amount.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-muted-foreground">Commission</p>
+                        <div className="text-right text-sm text-muted-foreground">
+                          {new Date(client.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1 text-sm">
+                        {client.email && (
+                          <div className="flex items-center text-muted-foreground">
+                            <Mail className="h-3 w-3 mr-2" />
+                            {client.email}
                           </div>
                         )}
-                      </div>
-                      
-                      {client.property_address && (
-                        <p className="text-sm text-muted-foreground mb-2">
-                          📍 {client.property_address}
-                        </p>
-                      )}
-                      
-                       {(client.client_type === 'buyer' && (client.email || client.phone)) && (
-                         <div className="flex space-x-4 text-xs text-muted-foreground mb-2">
-                           {client.email && <span>✉️ {client.email}</span>}
-                           {client.phone && <span>📞 {client.phone}</span>}
-                         </div>
-                       )}
-                      
-                      <p className="text-xs text-muted-foreground">
-                        Transaction Date: {new Date(client.transaction_date).toLocaleDateString()}
-                      </p>
-                      
-                      {client.notes && (
-                        <p className="text-sm text-muted-foreground mt-2 p-2 bg-background/50 rounded">
-                          {client.notes.length > 100 ? `${client.notes.substring(0, 100)}...` : client.notes}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-2 text-center py-12">
-                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No Previous Clients Found</h3>
-                  <p className="text-muted-foreground">
-                    {searchTerm || filterType !== 'all' 
-                      ? 'Try adjusting your search or filter criteria.' 
-                      : 'Complete some transactions to see previous clients here.'}
-                  </p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Transaction History Tab */}
-          <TabsContent value="breakdown" className="space-y-6">
-            <Card className="shadow-card bg-gradient-card border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2 text-primary" />
-                  Monthly Commission Breakdown
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={monthlyData}>
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, '']} />
-                    <Bar dataKey="listing" stackId="a" fill="#8B5CF6" name="Listing" />
-                    <Bar dataKey="buying" stackId="a" fill="#06B6D4" name="Buying" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2 text-primary" />
-                    Recent Transactions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 max-h-96 overflow-y-auto">
-                  {allCommissionsFromClients.slice(0, 8).map((commission) => (
-                    <div key={commission.id} className="flex items-center justify-between p-3 bg-background/50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm text-foreground">
-                          {commission.commission_type === 'listing' ? 'Listing Sale' : 'Buyer Purchase'}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(commission.date_earned).toLocaleDateString()}
-                        </p>
-                        {commission.description && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {commission.description}
-                          </p>
+                        {client.phone && (
+                          <div className="flex items-center text-muted-foreground">
+                            <Phone className="h-3 w-3 mr-2" />
+                            {client.phone}
+                          </div>
                         )}
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-success">
-                          ${commission.amount.toLocaleString()}
-                        </p>
-                        <Badge variant="secondary" className="text-xs">
-                          {commission.commission_type}
-                        </Badge>
+                        {client.budget_max && (
+                          <div className="text-success font-medium">
+                            Budget: ${(client.budget_max / 1000).toFixed(0)}K
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
-                  {allCommissionsFromClients.length === 0 && (
-                    <div className="text-center py-8">
-                      <DollarSign className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-muted-foreground">No transactions yet this year</p>
-                    </div>
+                  {activeClients.length > 10 && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      And {activeClients.length - 10} more active clients...
+                    </p>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No active clients yet</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-              <Card className="shadow-card bg-gradient-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="h-5 w-5 mr-2 text-primary" />
-                    Performance Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Total Transactions</span>
-                    <span className="font-semibold text-foreground">{allCommissionsFromClients.length}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Avg. Commission</span>
-                    <span className="font-semibold text-foreground">
-                      ${Math.round(totalCommissions / allCommissionsFromClients.length || 0).toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Best Month</span>
-                    <span className="font-semibold text-foreground">
-                      {monthlyData.reduce((best, month) => 
-                        month.total > best.total ? month : best, monthlyData[0]
-                      )?.month || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Closed Deals</span>
-                    <span className="font-semibold text-foreground">
-                      {closedClients.length}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Success Rate</span>
-                    <span className="font-semibold text-success">
-                      {previousClients.length > 0 
-                        ? Math.round((closedClients.length / previousClients.length) * 100)
-                        : 0}%
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
+          {/* Past Clients */}
+          <Card className="shadow-card bg-gradient-card border-border/50">
+            <CardHeader>
+              <CardTitle className="flex items-center text-foreground text-lg">
+                <Star className="h-5 w-5 mr-2 text-success" />
+                Past Clients ({pastClients.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {pastClients.length > 0 ? (
+                <div className="space-y-4">
+                  {pastClients.slice(0, 10).map((client) => (
+                    <div key={client.id} className="p-4 bg-background/50 rounded-lg border border-border/50">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="font-semibold text-foreground">{client.name}</h4>
+                          <Badge variant="outline" className="text-xs mt-1">
+                            {client.status.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <div className="text-right text-sm">
+                          <div className="font-semibold text-success">
+                            ${client.total_commission.toLocaleString()}
+                          </div>
+                          <div className="text-muted-foreground">
+                            {client.total_transactions} transaction{client.total_transactions !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1 text-sm">
+                        {client.email && (
+                          <div className="flex items-center text-muted-foreground">
+                            <Mail className="h-3 w-3 mr-2" />
+                            {client.email}
+                          </div>
+                        )}
+                        {client.phone && (
+                          <div className="flex items-center text-muted-foreground">
+                            <Phone className="h-3 w-3 mr-2" />
+                            {client.phone}
+                          </div>
+                        )}
+                        {client.last_transaction_date && (
+                          <div className="text-muted-foreground">
+                            Last: {new Date(client.last_transaction_date).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+
+                      {client.notes && (
+                        <div className="mt-2 p-2 bg-muted/50 rounded text-xs text-muted-foreground">
+                          {client.notes.length > 100 
+                            ? `${client.notes.substring(0, 100)}...` 
+                            : client.notes
+                          }
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {pastClients.length > 10 && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      And {pastClients.length - 10} more past clients...
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-2">No completed transactions yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Use the Smart AI Helper to close client deals and they'll appear here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   )
