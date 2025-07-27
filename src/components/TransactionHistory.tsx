@@ -13,8 +13,10 @@ import {
   FileText, 
   Clock,
   Eye,
-  ChevronRight
+  ChevronRight,
+  PieChart
 } from "lucide-react";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
 interface Transaction {
   id: string;
@@ -96,7 +98,7 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
     }
   };
 
-  const calculateEstimatedCommissions = () => {
+  const calculateCommissionMetrics = () => {
     const thisYear = new Date().getFullYear();
     const lastYear = thisYear - 1;
     
@@ -110,6 +112,17 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
     const thisYearTotal = thisYearTransactions.reduce((sum, t) => sum + t.amount, 0);
     const lastYearTotal = lastYearTransactions.reduce((sum, t) => sum + t.amount, 0);
     
+    // Sales breakdown
+    const buyerSales = transactions.filter(t => t.commission_type === 'buying');
+    const listingSales = transactions.filter(t => t.commission_type === 'listing');
+    const referralSales = transactions.filter(t => t.commission_type === 'referral');
+    
+    const buyerCommission = buyerSales.reduce((sum, t) => sum + t.amount, 0);
+    const listingCommission = listingSales.reduce((sum, t) => sum + t.amount, 0);
+    const referralCommission = referralSales.reduce((sum, t) => sum + t.amount, 0);
+    
+    const totalCommission = buyerCommission + listingCommission + referralCommission;
+    
     // Simple projection: assume same pace for rest of year
     const monthsPassed = new Date().getMonth() + 1;
     const projectedAnnual = monthsPassed > 0 ? (thisYearTotal / monthsPassed) * 12 : 0;
@@ -118,11 +131,32 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
       thisYear: thisYearTotal,
       lastYear: lastYearTotal,
       projected: projectedAnnual,
-      monthlyAverage: thisYearTotal / Math.max(monthsPassed, 1)
+      monthlyAverage: thisYearTotal / Math.max(monthsPassed, 1),
+      totalCommission,
+      salesBreakdown: [
+        {
+          name: 'Buyer Sales',
+          value: buyerSales.length,
+          commission: buyerCommission,
+          fill: 'hsl(var(--primary))'
+        },
+        {
+          name: 'Listing Sales',
+          value: listingSales.length,
+          commission: listingCommission,
+          fill: 'hsl(var(--success))'
+        },
+        {
+          name: 'Referrals',
+          value: referralSales.length,
+          commission: referralCommission,
+          fill: 'hsl(var(--warning))'
+        }
+      ]
     };
   };
 
-  const estimates = calculateEstimatedCommissions();
+  const metrics = calculateCommissionMetrics();
 
   if (loading) {
     return (
@@ -148,30 +182,81 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <div className="text-center p-4 bg-accent/10 rounded-lg border border-accent/20">
+              <div className="text-2xl font-bold text-accent">
+                ${metrics.totalCommission.toLocaleString()}
+              </div>
+              <div className="text-sm text-muted-foreground">Total Commission</div>
+            </div>
             <div className="text-center p-4 bg-success/10 rounded-lg border border-success/20">
               <div className="text-2xl font-bold text-success">
-                ${estimates.thisYear.toLocaleString()}
+                ${metrics.thisYear.toLocaleString()}
               </div>
               <div className="text-sm text-muted-foreground">Year to Date</div>
             </div>
             <div className="text-center p-4 bg-primary/10 rounded-lg border border-primary/20">
               <div className="text-2xl font-bold text-primary">
-                ${estimates.projected.toLocaleString()}
+                ${metrics.projected.toLocaleString()}
               </div>
               <div className="text-sm text-muted-foreground">Projected Annual</div>
             </div>
             <div className="text-center p-4 bg-warning/10 rounded-lg border border-warning/20">
               <div className="text-2xl font-bold text-warning">
-                ${estimates.monthlyAverage.toLocaleString()}
+                ${metrics.monthlyAverage.toLocaleString()}
               </div>
               <div className="text-sm text-muted-foreground">Monthly Average</div>
             </div>
             <div className="text-center p-4 bg-muted/50 rounded-lg border">
               <div className="text-2xl font-bold text-foreground">
-                ${estimates.lastYear.toLocaleString()}
+                ${metrics.lastYear.toLocaleString()}
               </div>
               <div className="text-sm text-muted-foreground">Last Year</div>
+            </div>
+          </div>
+
+          {/* Sales Breakdown Chart */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <PieChart className="h-5 w-5 mr-2 text-primary" />
+                Sales by Type
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <RechartsPieChart>
+                  <Pie
+                    data={metrics.salesBreakdown}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {metrics.salesBreakdown.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2 text-success" />
+                Commission by Type
+              </h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={metrics.salesBreakdown}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Commission']} />
+                  <Bar dataKey="commission" fill="hsl(var(--primary))" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </CardContent>
