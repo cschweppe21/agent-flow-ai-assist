@@ -68,7 +68,7 @@ export const RelationshipManagement = ({ clientId, clientName }: RelationshipMan
     setClientRatings(prev => ({ ...prev, [clientId]: rating }));
     toast({
       title: "Client Rated",
-      description: `Rated ${rating} stars`,
+      description: `Rated ${rating} stars for ease of working together`,
     });
   };
 
@@ -85,18 +85,22 @@ export const RelationshipManagement = ({ clientId, clientName }: RelationshipMan
   // Star rating component
   const StarRating = ({ clientId, rating, onRate }: { clientId: string, rating: number, onRate: (rating: number) => void }) => {
     return (
-      <div className="flex items-center space-x-1">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            onClick={() => onRate(star)}
-            className="hover:scale-110 transition-transform"
-          >
-            <Star 
-              className={`h-4 w-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-            />
-          </button>
-        ))}
+      <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => onRate(star)}
+              className="hover:scale-110 transition-transform"
+              title={`Rate ${star} star${star !== 1 ? 's' : ''} - How easy were they to work with?`}
+            >
+              <Star 
+                className={`h-4 w-4 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+              />
+            </button>
+          ))}
+        </div>
+        <span className="text-xs text-muted-foreground">Ease of working</span>
       </div>
     );
   };
