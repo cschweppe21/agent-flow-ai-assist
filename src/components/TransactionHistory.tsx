@@ -51,24 +51,50 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
 
     const fetchTransactions = async () => {
       try {
-        let query = supabase
+        let commissionQuery = supabase
           .from('commissions')
-          .select(`
-            *,
-            buyers!left (name, email),
-            listings!left (address, price)
-          `)
+          .select('*')
           .eq('user_id', user.id)
           .order('date_earned', { ascending: false });
 
         if (clientId) {
-          query = query.eq('buyer_id', clientId);
+          commissionQuery = commissionQuery.eq('buyer_id', clientId);
         }
 
-        const { data, error } = await query;
+        const { data: commissions, error: commissionsError } = await commissionQuery;
+        if (commissionsError) throw commissionsError;
 
-        if (error) throw error;
-        setTransactions(data || []);
+        // Fetch related buyers and listings separately
+        const buyerIds = commissions?.map(c => c.buyer_id).filter(Boolean) || [];
+        const listingIds = commissions?.map(c => c.listing_id).filter(Boolean) || [];
+
+        let buyers: any[] = [];
+        let listings: any[] = [];
+
+        if (buyerIds.length > 0) {
+          const { data: buyersData } = await supabase
+            .from('buyers')
+            .select('id, name, email')
+            .in('id', buyerIds);
+          buyers = buyersData || [];
+        }
+
+        if (listingIds.length > 0) {
+          const { data: listingsData } = await supabase
+            .from('listings')
+            .select('id, address, price')
+            .in('id', listingIds);
+          listings = listingsData || [];
+        }
+
+        // Join the data manually
+        const transactionsWithRelations = commissions?.map(commission => ({
+          ...commission,
+          buyer: commission.buyer_id ? buyers.find(b => b.id === commission.buyer_id) : null,
+          listing: commission.listing_id ? listings.find(l => l.id === commission.listing_id) : null
+        })) || [];
+
+        setTransactions(transactionsWithRelations);
       } catch (error) {
         console.error('Error fetching transactions:', error);
       } finally {
