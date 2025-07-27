@@ -142,31 +142,6 @@ export const Dashboard = () => {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Smart AI Helper - Prominent placement */}
-        <div className="lg:col-span-3 mb-6">
-          <div className="flex justify-center">
-            <SmartAIHelper>
-              <div className="bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl p-6 border border-primary/20 shadow-elevated max-w-md w-full cursor-pointer hover:scale-105 transition-transform">
-                <div className="text-center space-y-4">
-                  <div className="bg-primary/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto">
-                    <Bot className="h-8 w-8 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">Smart AI Helper</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Tell me about a client, property, or task and I'll organize it for you automatically.
-                    </p>
-                  </div>
-                  <div className="bg-background/50 rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground mb-2">Try saying:</p>
-                    <p className="text-xs italic">"Met Sarah at the open house, looking for 3-bed in downtown, budget 600k"</p>
-                  </div>
-                </div>
-              </div>
-            </SmartAIHelper>
-          </div>
-        </div>
-
         {/* Active Buyers / Listings Toggle Section */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">

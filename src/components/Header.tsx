@@ -30,12 +30,12 @@ export const Header = () => {
           <div className="flex items-center space-x-4">
             <SmartAIHelper>
               <Button 
-                variant="hero" 
+                variant="ghost" 
                 size="sm"
-                className="bg-gradient-primary text-white shadow-elegant hover:shadow-glow transition-all duration-300"
+                className="text-white/80 hover:text-white hover:bg-white/10 text-xs"
               >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Smart Helper
+                <Sparkles className="h-3 w-3 mr-1" />
+                AI
               </Button>
             </SmartAIHelper>
 
