@@ -138,16 +138,14 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
     const thisYearTotal = thisYearTransactions.reduce((sum, t) => sum + t.amount, 0);
     const lastYearTotal = lastYearTransactions.reduce((sum, t) => sum + t.amount, 0);
     
-    // Sales breakdown
+    // Sales breakdown (excluding referrals)
     const buyerSales = transactions.filter(t => t.commission_type === 'buying');
     const listingSales = transactions.filter(t => t.commission_type === 'listing');
-    const referralSales = transactions.filter(t => t.commission_type === 'referral');
     
     const buyerCommission = buyerSales.reduce((sum, t) => sum + t.amount, 0);
     const listingCommission = listingSales.reduce((sum, t) => sum + t.amount, 0);
-    const referralCommission = referralSales.reduce((sum, t) => sum + t.amount, 0);
     
-    const totalCommission = buyerCommission + listingCommission + referralCommission;
+    const totalCommission = buyerCommission + listingCommission;
     
     // Simple projection: assume same pace for rest of year
     const monthsPassed = new Date().getMonth() + 1;
@@ -171,12 +169,6 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
           value: listingSales.length,
           commission: listingCommission,
           fill: 'hsl(var(--success))'
-        },
-        {
-          name: 'Referrals',
-          value: referralSales.length,
-          commission: referralCommission,
-          fill: 'hsl(var(--warning))'
         }
       ]
     };
