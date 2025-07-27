@@ -24,7 +24,7 @@ const Index = () => {
     if (!showAuth) {
       return <LandingPage onGetStarted={() => setShowAuth(true)} />
     }
-    return <AuthForm />
+    return <AuthForm onBack={() => setShowAuth(false)} />
   }
 
   return (

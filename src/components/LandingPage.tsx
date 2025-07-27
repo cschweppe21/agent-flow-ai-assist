@@ -39,7 +39,7 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-hero relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 bg-black/20" />
       <div className="absolute top-0 left-0 w-full h-full">
@@ -54,7 +54,7 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
             <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
               <Zap className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white">SlipStream</span>
+            <span className="text-2xl font-bold text-white">SlipStream Dashboard</span>
           </div>
           <Badge variant="secondary" className="bg-white/10 text-white border-white/20 backdrop-blur-sm">
             Real Estate CRM & Analytics

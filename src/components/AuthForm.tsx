@@ -4,9 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
-export const AuthForm = () => {
+
+interface AuthFormProps {
+  onBack?: () => void;
+}
+export const AuthForm = ({ onBack }: AuthFormProps) => {
   const {
     signIn,
     signUp
@@ -67,6 +71,16 @@ export const AuthForm = () => {
   return <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-elevated bg-gradient-card border-border/50">
         <CardHeader className="space-y-1">
+          {onBack && (
+            <Button
+              variant="ghost"
+              onClick={onBack}
+              className="absolute top-4 left-4 text-white hover:text-white/80 hover:bg-white/10"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          )}
           <div className="text-center mb-6">
             <h1 className="text-foreground font-bold text-4xl">SlipStream</h1>
             <h2 className="text-foreground font-bold text-2xl">Dashboard</h2>
