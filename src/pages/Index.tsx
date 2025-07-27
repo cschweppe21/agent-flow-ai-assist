@@ -23,10 +23,16 @@ const Index = () => {
 
   if (!isAuthenticated) {
     if (!showAuth) {
-      return <LandingPage onGetStarted={() => {
-        setAuthMode('signup')
-        setShowAuth(true)
-      }} />
+      return <LandingPage 
+        onGetStarted={() => {
+          setAuthMode('signup')
+          setShowAuth(true)
+        }}
+        onSignIn={() => {
+          setAuthMode('login')
+          setShowAuth(true)
+        }}
+      />
     }
     return <AuthForm onBack={() => setShowAuth(false)} initialMode={authMode} />
   }

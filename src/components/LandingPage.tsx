@@ -5,9 +5,10 @@ import { ArrowRight, BarChart3, Brain, Calendar, Users, Zap, CheckCircle } from 
 
 interface LandingPageProps {
   onGetStarted: () => void
+  onSignIn: () => void
 }
 
-export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
+export const LandingPage = ({ onGetStarted, onSignIn }: LandingPageProps) => {
   const features = [
     {
       icon: Brain,
@@ -61,7 +62,7 @@ export const LandingPage = ({ onGetStarted }: LandingPageProps) => {
               Real Estate CRM & Analytics
             </Badge>
             <Button 
-              onClick={onGetStarted}
+              onClick={onSignIn}
               variant="outline" 
               className="bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white/50"
             >
