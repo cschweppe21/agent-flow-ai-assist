@@ -1,10 +1,13 @@
 import { Header } from "@/components/Header"
 import { Dashboard } from "@/components/Dashboard"
 import { AuthForm } from "@/components/AuthForm"
+import { LandingPage } from "@/components/LandingPage"
 import { useAuth } from "@/components/AuthProvider"
+import { useState } from "react"
 
 const Index = () => {
   const { isAuthenticated, isLoading } = useAuth()
+  const [showAuth, setShowAuth] = useState(false)
 
   if (isLoading) {
     return (
@@ -18,6 +21,9 @@ const Index = () => {
   }
 
   if (!isAuthenticated) {
+    if (!showAuth) {
+      return <LandingPage onGetStarted={() => setShowAuth(true)} />
+    }
     return <AuthForm />
   }
 
