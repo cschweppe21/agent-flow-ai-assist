@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { 
@@ -14,7 +15,8 @@ import {
   Clock,
   Eye,
   ChevronRight,
-  PieChart
+  PieChart,
+  X
 } from "lucide-react";
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 
@@ -347,22 +349,13 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
       </Card>
 
       {/* Transaction Detail Modal */}
-      {selectedTransaction && (
-        <Card className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Transaction Details</span>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setSelectedTransaction(null)}
-                >
-                  ×
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Transaction Details</DialogTitle>
+          </DialogHeader>
+          {selectedTransaction && (
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Amount</label>
@@ -422,10 +415,10 @@ export const TransactionHistory = ({ clientId }: TransactionHistoryProps) => {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </div>
-        </Card>
-      )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
