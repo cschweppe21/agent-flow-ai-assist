@@ -21,14 +21,17 @@ export const Header = () => {
   return <header className="bg-gradient-hero border-b border-border/10 shadow-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <div>
-              <h1 className="text-xl font-bold text-white">SlipStream Dashboard</h1>
-            </div>
+          {/* Left side - Leave space for hamburger menu */}
+          <div className="flex items-center ml-16">
+            {!isHomePage && (
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => navigate('/')} title="Home">
+                <Home className="h-5 w-5" />
+              </Button>
+            )}
           </div>
           
+          {/* Right side - User info and actions */}
           <div className="flex items-center space-x-4">
-
             {user && <div className="flex items-center space-x-3">
                 <Badge variant={roleBadgeVariants[profile?.role || 'free']} className="text-xs">
                   {(profile?.role || 'free').toUpperCase()}
@@ -42,12 +45,6 @@ export const Header = () => {
             <NotificationDropdown />
             
             <OptionsMenu />
-            
-            {!isHomePage && (
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => navigate('/')} title="Home">
-                <Home className="h-5 w-5" />
-              </Button>
-            )}
           </div>
         </div>
       </div>

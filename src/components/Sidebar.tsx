@@ -43,7 +43,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground">SlipStream</h2>
+            <h2 className="text-lg font-semibold text-foreground">SlipStream Dashboard</h2>
             <Button
               variant="ghost"
               size="icon"
