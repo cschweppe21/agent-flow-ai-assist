@@ -42,6 +42,8 @@ import { supabase } from "@/integrations/supabase/client"
 export const Dashboard = () => {
   const { profile } = useAuth()
   const { listings, commissions, tasks, loading, error, metrics } = useDashboardData()
+  
+  console.log('Dashboard render:', { profile, loading, error, hasListings: !!listings, hasMetrics: !!metrics })
   const [activeChart, setActiveChart] = useState<'listings' | 'commissions' | 'buyers' | 'market' | null>(null)
   const [mainView, setMainView] = useState<'buyers' | 'listings'>('buyers')
   const [selectedBuyer, setSelectedBuyer] = useState<any>(null)

@@ -6,9 +6,11 @@ import { useAuth } from "@/components/AuthProvider"
 import { useState } from "react"
 
 const Index = () => {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user, profile } = useAuth()
   const [showAuth, setShowAuth] = useState(false)
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+
+  console.log('Index render:', { isAuthenticated, isLoading, hasUser: !!user, hasProfile: !!profile })
 
   if (isLoading) {
     return (
