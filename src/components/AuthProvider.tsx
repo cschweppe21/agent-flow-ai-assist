@@ -51,24 +51,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, !!session)
         setSession(session)
         setUser(session?.user ?? null)
+        setIsLoading(false) // Set loading to false on any auth state change
         
         if (session?.user) {
           // Fetch user profile
-          setTimeout(async () => {
-            try {
-              const { data: profileData } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .maybeSingle()
-              
-              setProfile(profileData as Profile)
-            } catch (error) {
-              console.error('Error fetching profile:', error)
-            }
-          }, 0)
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle()
+            
+            setProfile(profileData as Profile)
+          } catch (error) {
+            console.error('Error fetching profile:', error)
+          }
         } else {
           setProfile(null)
         }
@@ -76,10 +76,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     )
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('Initial session check:', !!session, error)
       setSession(session)
       setUser(session?.user ?? null)
       setIsLoading(false)
+    }).catch((error) => {
+      console.error('Error getting session:', error)
+      setIsLoading(false) // Make sure to set loading to false even on error
     })
 
     return () => subscription.unsubscribe()
