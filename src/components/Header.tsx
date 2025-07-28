@@ -9,21 +9,25 @@ import { NotificationDropdown } from "@/components/NotificationDropdown";
 import { SmartAIHelper } from "@/components/SmartAIHelper";
 
 export const Header = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === '/';
+  const isDashboard = isAuthenticated && isHomePage;
+  const showHomeButton = isAuthenticated && !isHomePage;
+  
   const roleBadgeVariants = {
     free: 'secondary' as const,
     pro: 'default' as const,
     team: 'success' as const
   };
+  
   return <header className="bg-gradient-hero border-b border-border/10 shadow-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Left side - Leave space for hamburger menu */}
+          {/* Left side - Home button for authenticated non-dashboard pages */}
           <div className="flex items-center ml-16">
-            {!isHomePage && (
+            {showHomeButton && (
               <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => navigate('/')} title="Home">
                 <Home className="h-5 w-5" />
               </Button>

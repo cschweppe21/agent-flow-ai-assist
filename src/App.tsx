@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider } from "@/components/AuthProvider";
-import { HamburgerMenu } from "@/components/HamburgerMenu";
 import Index from "./pages/Index";
 import AIAssistant from "./pages/AIAssistant";
 import Tasks from "./pages/Tasks";
@@ -32,7 +31,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <HamburgerMenu />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/ai-assistant" element={<AIAssistant />} />
