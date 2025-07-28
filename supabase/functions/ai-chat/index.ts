@@ -125,10 +125,28 @@ serve(async (req) => {
       });
     }
 
-    const { message, conversationId } = await req.json();
+    const body = await req.json();
+    const { message, conversationId } = body;
 
-    if (!message || typeof message !== 'string') {
+    // Enhanced input validation for security
+    if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return new Response(JSON.stringify({ error: 'Message is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Security: Limit message length to prevent abuse
+    if (message.length > 10000) {
+      return new Response(JSON.stringify({ error: 'Message too long (max 10,000 characters)' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate conversationId if provided
+    if (conversationId && (typeof conversationId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(conversationId))) {
+      return new Response(JSON.stringify({ error: 'Invalid conversation ID format' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

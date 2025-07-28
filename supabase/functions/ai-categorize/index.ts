@@ -15,11 +15,24 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json();
-    
-    if (!text) {
-      throw new Error('Missing required field: text');
-    }
+  const body = await req.json();
+  const { text } = body;
+
+  // Enhanced input validation for security
+  if (!text || typeof text !== 'string' || text.trim().length === 0) {
+    return new Response(JSON.stringify({ error: 'Text is required' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Security: Limit text length to prevent abuse
+  if (text.length > 2000) {
+    return new Response(JSON.stringify({ error: 'Text too long (max 2,000 characters)' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 
     console.log(`Categorizing text:`, text);
 

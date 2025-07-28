@@ -17,7 +17,41 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, type, userId } = await req.json();
+  const body = await req.json();
+  const { prompt, type, userId } = body;
+
+  // Enhanced input validation for security
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Security: Limit prompt length to prevent abuse
+  if (prompt.length > 5000) {
+    return new Response(JSON.stringify({ error: 'Prompt too long (max 5,000 characters)' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Validate type parameter
+  const validTypes = ['buyer', 'listing', 'vendor', 'task', 'close-buyer'];
+  if (!type || !validTypes.includes(type)) {
+    return new Response(JSON.stringify({ error: 'Invalid type parameter' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Validate userId if provided
+  if (userId && (typeof userId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId))) {
+    return new Response(JSON.stringify({ error: 'Invalid user ID format' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
     console.log(`Processing ${type} prompt: ${prompt}`);
 
     const supabase = createClient(supabaseUrl!, supabaseKey!);
