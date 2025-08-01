@@ -50,30 +50,42 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, !!session)
         setSession(session)
         setUser(session?.user ?? null)
         setIsLoading(false) // Set loading to false on any auth state change
         
         if (session?.user) {
-          // Fetch user profile
-          try {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .maybeSingle()
-            
-            setProfile(profileData as Profile)
-          } catch (error) {
-            console.error('Error fetching profile:', error)
-          }
+          // Use setTimeout to avoid deadlock in auth callback
+          setTimeout(() => {
+            fetchProfile(session.user.id)
+          }, 0)
         } else {
           setProfile(null)
         }
       }
     )
+
+    // Fetch profile function
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle()
+        
+        if (error) {
+          console.error('Error fetching profile:', error)
+        } else {
+          console.log('Profile fetched:', profileData)
+          setProfile(profileData as Profile)
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+      }
+    }
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
@@ -81,6 +93,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(session)
       setUser(session?.user ?? null)
       setIsLoading(false)
+      
+      // Fetch profile if user exists
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      }
     }).catch((error) => {
       console.error('Error getting session:', error)
       setIsLoading(false) // Make sure to set loading to false even on error
