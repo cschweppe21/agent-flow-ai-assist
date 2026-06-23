@@ -3,50 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SlipStream - Real Estate Commission Tracker</title>
-    <meta name="description" content="Progressive Web App for residential real estate agents to track commissions, manage clients, and organize workload." />
-    <meta name="author" content="SlipStream" />
-    <meta name="theme-color" content="#3b82f6" />
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="/pwa-icon-192.png" />
+    <title>Connected</title>
+    <meta name="description" content="A minimal personal CRM for managing professional relationships." />
+    <meta name="author" content="Connected" />
+    <meta name="theme-color" content="#2E5141" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="SlipStream" />
+    <meta name="apple-mobile-web-app-title" content="Connected" />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="SlipStream - Real Estate Commission Tracker" />
-    <meta property="og:description" content="Progressive Web App for residential real estate agents to track commissions, manage clients, and organize workload." />
+    <meta property="og:title" content="Connected" />
+    <meta property="og:description" content="A minimal personal CRM for managing professional relationships." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/pwa-icon-512.png" />
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SlipStream - Real Estate Commission Tracker" />
-    <meta name="twitter:description" content="Progressive Web App for residential real estate agents to track commissions, manage clients, and organize workload." />
-    <meta name="twitter:image" content="/pwa-icon-512.png" />
+    <meta property="og:image" content="/logo.svg" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
   </body>
 </html>
