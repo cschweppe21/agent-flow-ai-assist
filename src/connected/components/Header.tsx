@@ -11,7 +11,6 @@ export function Header({ view, onViewChange, saveState }: Props) {
   return (
     <header className="cn-header">
       <div className="cn-wordmark">
-        <img src="/logo.svg" alt="Connected logo" width="22" height="22" style={{ borderRadius: 5, display: 'block', flexShrink: 0 }} />
         Connected
       </div>
 
