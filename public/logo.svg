@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Pine-green rounded square -->
+  <rect width="100" height="100" rx="22" fill="#2E5141"/>
+  <!--
+    C arc: centre (50,50), radius 27.
+    Opens to the right with a ~76° gap (±38° from the 3 o'clock axis).
+    cos38≈0.788  sin38≈0.616
+    Top end : (71.3, 33.4)   Bottom end : (71.3, 66.6)
+    large-arc=1, sweep=0 → traces counter-clockwise (left side of circle) = C shape
+  -->
+  <path
+    d="M 71.3 33.4 A 27 27 0 1 0 71.3 66.6"
+    stroke="#FBFBF9"
+    stroke-width="11.5"
+    stroke-linecap="round"
+    fill="none"
+  />
+</svg>
