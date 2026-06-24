@@ -8,28 +8,20 @@ interface Props {
   onSelectContact: (id: string) => void;
 }
 
-interface GraphNode {
+type NodeKind = 'person' | 'hub';
+
+interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
-  name: string;
-  company?: string;
-  school?: string;
-  gradYear?: string;
+  kind: NodeKind;
+  label: string;
   clusterKey: string;
-  clusterLabel: string;
-  priority: boolean;
+  radius: number;
+  priority?: boolean;
   followUpRecommended?: boolean;
-  x?: number;
-  y?: number;
-  vx?: number;
-  vy?: number;
-  fx?: number | null;
-  fy?: number | null;
 }
 
-interface GraphLink {
-  source: string | GraphNode;
-  target: string | GraphNode;
-  referral: boolean;
+interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
+  kind: 'cluster' | 'referral';
 }
 
 const CLUSTER_COLORS = [
@@ -41,6 +33,9 @@ const CLUSTER_COLORS = [
 export function NetworkGraph({ contacts, onSelectContact }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const callbackRef = useRef(onSelectContact);
+  callbackRef.current = onSelectContact;
+
   const [cluster, setCluster] = useState<GraphCluster>('company');
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
 
@@ -52,199 +47,248 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
     const { width, height } = containerRef.current.getBoundingClientRect();
     if (width === 0 || height === 0) return;
 
-    // Build nodes
-    const nodes: GraphNode[] = contacts.map((c) => {
-      let clusterKey = '';
-      let clusterLabel = '';
-      if (cluster === 'company') {
-        clusterKey = c.company ?? '__none__';
-        clusterLabel = c.company ?? '(No company)';
-      } else {
-        const school = c.school ?? '__none__';
-        const year = c.gradYear ? `'${c.gradYear.slice(-2)}` : '';
-        clusterKey = school;
-        clusterLabel = c.school ? `${c.school}${year ? ' ' + year : ''}` : '(No school)';
-      }
-      return {
-        id: c.id,
-        name: c.name || 'Unnamed',
-        company: c.company,
-        school: c.school,
-        gradYear: c.gradYear,
-        clusterKey,
-        clusterLabel,
-        priority: c.priority,
-        followUpRecommended: c.followUpRecommended,
+    if (contacts.length === 0) {
+      svg.append('text')
+        .attr('x', width / 2).attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#9a9a94')
+        .attr('font-size', '0.85rem')
+        .attr('font-family', '-apple-system, sans-serif')
+        .text('Add contacts to see the web');
+      return;
+    }
+
+    // Cluster keys and counts
+    const clusterKeyOf = (c: Contact) =>
+      cluster === 'company'
+        ? (c.company ?? '__none__')
+        : (c.school ?? '__none__');
+
+    const clusterLabelOf = (c: Contact) => {
+      if (cluster === 'company') return c.company ?? '(No company)';
+      if (!c.school) return '(No school)';
+      const year = c.gradYear ? ` '${c.gradYear.slice(-2)}` : '';
+      return `${c.school}${year}`;
+    };
+
+    const clusterKeys = Array.from(new Set(contacts.map(clusterKeyOf)));
+    const clusterCounts: Record<string, number> = {};
+    contacts.forEach((c) => {
+      const k = clusterKeyOf(c);
+      clusterCounts[k] = (clusterCounts[k] ?? 0) + 1;
+    });
+
+    const colorScale = d3.scaleOrdinal<string, string>().domain(clusterKeys).range(CLUSTER_COLORS);
+
+    // Hub centers arranged in a ring
+    const numClusters = clusterKeys.length;
+    const ringR = Math.min(width, height) * (numClusters === 1 ? 0 : 0.3);
+    const clusterCenters: Record<string, { x: number; y: number }> = {};
+    clusterKeys.forEach((k, i) => {
+      const angle = (i / numClusters) * 2 * Math.PI - Math.PI / 2;
+      clusterCenters[k] = {
+        x: width / 2 + ringR * Math.cos(angle),
+        y: height / 2 + ringR * Math.sin(angle),
       };
     });
 
-    // Build links: referral relationships
-    const links: GraphLink[] = [];
+    // Build hub nodes (fixed at cluster centers)
+    const hubNodes: GraphNode[] = clusterKeys.map((k) => {
+      const label = cluster === 'company'
+        ? (k === '__none__' ? 'No company' : k)
+        : (k === '__none__' ? 'No school' : k);
+      return {
+        id: `hub:${k}`,
+        kind: 'hub',
+        label,
+        clusterKey: k,
+        radius: Math.max(26, Math.sqrt(clusterCounts[k] ?? 1) * 13),
+        x: clusterCenters[k].x,
+        y: clusterCenters[k].y,
+        fx: clusterCenters[k].x,
+        fy: clusterCenters[k].y,
+      };
+    });
+
+    // Build person nodes
+    const personNodes: GraphNode[] = contacts.map((c) => {
+      const ck = clusterKeyOf(c);
+      const center = clusterCenters[ck];
+      return {
+        id: c.id,
+        kind: 'person',
+        label: c.name || 'Unnamed',
+        clusterKey: ck,
+        radius: c.priority ? 13 : 9,
+        priority: c.priority,
+        followUpRecommended: c.followUpRecommended,
+        x: center.x + (Math.random() - 0.5) * 60,
+        y: center.y + (Math.random() - 0.5) * 60,
+      };
+    });
+
+    const allNodes: GraphNode[] = [...hubNodes, ...personNodes];
+    const personIdSet = new Set(personNodes.map((n) => n.id));
+
+    // Cluster links: person → their hub
+    const clusterLinks: GraphLink[] = personNodes.map((p) => ({
+      source: p.id,
+      target: `hub:${p.clusterKey}`,
+      kind: 'cluster' as const,
+    }));
+
+    // Referral links: person → person (both must exist)
+    const referralLinks: GraphLink[] = [];
     contacts.forEach((c) => {
       c.referrals.forEach((r) => {
-        if (r.contactId) {
-          links.push({ source: c.id, target: r.contactId, referral: true });
+        if (r.contactId && personIdSet.has(r.contactId)) {
+          referralLinks.push({ source: c.id, target: r.contactId, kind: 'referral' as const });
         }
       });
     });
 
-    // Cluster color map
-    const clusterKeys = Array.from(new Set(nodes.map((n) => n.clusterKey)));
-    const colorScale = d3.scaleOrdinal<string, string>().domain(clusterKeys).range(CLUSTER_COLORS);
-
-    // Cluster centers
-    const numClusters = clusterKeys.length;
-    const clusterCenters: Record<string, { x: number; y: number }> = {};
-    clusterKeys.forEach((k, i) => {
-      const angle = (i / numClusters) * 2 * Math.PI;
-      const r = Math.min(width, height) * 0.32;
-      clusterCenters[k] = {
-        x: width / 2 + r * Math.cos(angle),
-        y: height / 2 + r * Math.sin(angle),
-      };
-    });
-
-    // Initialize node positions near cluster center
-    nodes.forEach((n) => {
-      const center = clusterCenters[n.clusterKey];
-      n.x = center.x + (Math.random() - 0.5) * 60;
-      n.y = center.y + (Math.random() - 0.5) * 60;
-    });
+    const allLinks: GraphLink[] = [...clusterLinks, ...referralLinks];
 
     const g = svg.append('g');
 
-    // Zoom
+    // Zoom/pan
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.2, 4])
-      .on('zoom', (event) => {
-        g.attr('transform', event.transform.toString());
-      });
+      .scaleExtent([0.15, 5])
+      .on('zoom', (event) => g.attr('transform', event.transform.toString()));
     svg.call(zoom as any);
 
     // Simulation
     const simulation = d3
-      .forceSimulation(nodes as d3.SimulationNodeDatum[])
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(80).strength(0.3))
-      .force('charge', d3.forceManyBody().strength(-180))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('cluster', () => {
-        nodes.forEach((n) => {
-          const center = clusterCenters[n.clusterKey];
-          n.vx = (n.vx ?? 0) + (center.x - (n.x ?? 0)) * 0.04;
-          n.vy = (n.vy ?? 0) + (center.y - (n.y ?? 0)) * 0.04;
-        });
-      })
-      .force('collision', d3.forceCollide(22));
+      .forceSimulation(allNodes as d3.SimulationNodeDatum[])
+      .force(
+        'link',
+        d3.forceLink<GraphNode, GraphLink>(allLinks)
+          .id((d) => d.id)
+          .distance((l) => {
+            if (l.kind === 'cluster') {
+              const pNode = (l.source as GraphNode);
+              const hNode = (l.target as GraphNode);
+              return (hNode.radius ?? 26) + (pNode.radius ?? 9) + 30;
+            }
+            return 100;
+          })
+          .strength((l) => (l.kind === 'cluster' ? 0.9 : 0.05))
+      )
+      .force('charge', d3.forceManyBody().strength(-150))
+      .force('collision', d3.forceCollide<GraphNode>((d) => d.radius + 5))
+      .alphaDecay(0.025);
 
-    // Draw cluster halos (faint circles behind clusters)
-    clusterKeys.forEach((k) => {
-      const center = clusterCenters[k];
-      const count = nodes.filter((n) => n.clusterKey === k).length;
-      if (count === 0) return;
-      g.append('circle')
-        .attr('cx', center.x)
-        .attr('cy', center.y)
-        .attr('r', Math.max(50, count * 20))
-        .attr('fill', colorScale(k))
-        .attr('opacity', 0.05)
-        .attr('stroke', colorScale(k))
-        .attr('stroke-width', 1)
-        .attr('stroke-dasharray', '4 4');
-
-      // Cluster label
-      g.append('text')
-        .attr('x', center.x)
-        .attr('y', center.y - Math.max(50, count * 20) - 6)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '0.65rem')
-        .attr('font-family', '-apple-system, sans-serif')
-        .attr('letter-spacing', '0.08em')
-        .attr('text-transform', 'uppercase')
-        .attr('fill', colorScale(k))
-        .attr('opacity', 0.7)
-        .text(k === '__none__' ? '' : k);
-    });
-
-    // Draw links
-    const linkEl = g
-      .selectAll('line')
-      .data(links)
+    // Draw cluster links
+    const clusterLinkEl = g
+      .selectAll<SVGLineElement, GraphLink>('line.cl')
+      .data(clusterLinks)
       .join('line')
-      .attr('stroke', '#ccc')
-      .attr('stroke-width', 1.5)
-      .attr('stroke-dasharray', (d) => (d.referral ? '5 4' : null))
-      .attr('opacity', 0.6);
+      .attr('class', 'cl')
+      .attr('stroke', (d) => colorScale((d.source as GraphNode).clusterKey ?? ''))
+      .attr('stroke-width', 1.2)
+      .attr('opacity', 0.35);
 
-    // Draw nodes
-    const nodeEl = g
-      .selectAll<SVGGElement, GraphNode>('g.node')
-      .data(nodes)
+    // Draw referral links
+    const referralLinkEl = g
+      .selectAll<SVGLineElement, GraphLink>('line.rl')
+      .data(referralLinks)
+      .join('line')
+      .attr('class', 'rl')
+      .attr('stroke', '#b5533c')
+      .attr('stroke-width', 1.8)
+      .attr('stroke-dasharray', '5 4')
+      .attr('opacity', 0.75);
+
+    // Draw hub nodes
+    const hubEl = g
+      .selectAll<SVGGElement, GraphNode>('g.hub')
+      .data(hubNodes)
       .join('g')
-      .attr('class', 'node')
+      .attr('class', 'hub');
+
+    hubEl
+      .append('circle')
+      .attr('r', (d) => d.radius)
+      .attr('fill', (d) => colorScale(d.clusterKey))
+      .attr('opacity', 0.9);
+
+    hubEl
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '0.35em')
+      .attr('font-size', (d) => `${Math.max(0.55, Math.min(0.75, d.radius / 40))}rem`)
+      .attr('font-family', '-apple-system, sans-serif')
+      .attr('font-weight', '600')
+      .attr('fill', 'white')
+      .attr('pointer-events', 'none')
+      .text((d) => d.label.length > 14 ? d.label.slice(0, 13) + '…' : d.label);
+
+    // Draw person nodes
+    const personEl = g
+      .selectAll<SVGGElement, GraphNode>('g.person')
+      .data(personNodes)
+      .join('g')
+      .attr('class', 'person')
       .style('cursor', 'pointer')
       .call(
         d3
           .drag<SVGGElement, GraphNode>()
           .on('start', (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
+            d.fx = d.x; d.fy = d.y;
           })
-          .on('drag', (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-          })
+          .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
           .on('end', (event, d) => {
             if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+            d.fx = null; d.fy = null;
           }) as any
       )
-      .on('click', (_event, d) => {
-        onSelectContact(d.id);
-      })
+      .on('click', (_e, d) => callbackRef.current(d.id))
       .on('mouseenter', (event, d) => {
         const rect = svgRef.current!.getBoundingClientRect();
-        setTooltip({
-          x: event.clientX - rect.left + 12,
-          y: event.clientY - rect.top - 8,
-          text: `${d.name}${d.company ? ` · ${d.company}` : ''}`,
-        });
+        setTooltip({ x: event.clientX - rect.left + 14, y: event.clientY - rect.top - 10, text: d.label });
       })
       .on('mouseleave', () => setTooltip(null));
 
-    nodeEl
+    personEl
       .append('circle')
-      .attr('r', (d) => (d.priority ? 14 : 10))
+      .attr('r', (d) => d.radius)
       .attr('fill', (d) => colorScale(d.clusterKey))
       .attr('stroke', (d) => (d.followUpRecommended ? '#c0392b' : 'white'))
-      .attr('stroke-width', (d) => (d.followUpRecommended ? 2.5 : 2));
+      .attr('stroke-width', (d) => (d.followUpRecommended ? 2.5 : 1.5));
 
-    nodeEl
+    personEl
       .append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
-      .attr('font-size', '0.55rem')
+      .attr('font-size', '0.5rem')
       .attr('font-family', '-apple-system, sans-serif')
       .attr('fill', 'white')
       .attr('pointer-events', 'none')
-      .text((d) => d.name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase());
+      .text((d) =>
+        d.label.split(' ').map((w) => w[0] ?? '').join('').slice(0, 2).toUpperCase()
+      );
 
     // Tick
     simulation.on('tick', () => {
-      linkEl
+      clusterLinkEl
         .attr('x1', (d) => ((d.source as GraphNode).x ?? 0))
         .attr('y1', (d) => ((d.source as GraphNode).y ?? 0))
         .attr('x2', (d) => ((d.target as GraphNode).x ?? 0))
         .attr('y2', (d) => ((d.target as GraphNode).y ?? 0));
 
-      nodeEl.attr('transform', (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
+      referralLinkEl
+        .attr('x1', (d) => ((d.source as GraphNode).x ?? 0))
+        .attr('y1', (d) => ((d.source as GraphNode).y ?? 0))
+        .attr('x2', (d) => ((d.target as GraphNode).x ?? 0))
+        .attr('y2', (d) => ((d.target as GraphNode).y ?? 0));
+
+      hubEl.attr('transform', (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
+      personEl.attr('transform', (d) => `translate(${d.x ?? 0},${d.y ?? 0})`);
     });
 
-    return () => {
-      simulation.stop();
-    };
-  }, [contacts, cluster, onSelectContact]);
+    return () => { simulation.stop(); };
+  }, [contacts, cluster]); // onSelectContact intentionally excluded — use callbackRef
 
   return (
     <div className="cn-graph-pane">
@@ -263,7 +307,7 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
           School + Year
         </button>
         <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--cn-ink-faint)', fontFamily: 'sans-serif' }}>
-          Dashed lines = referrals · Red border = follow-up needed · Click node to open
+          — lines to hub = cluster · dashed orange = referral · red border = follow-up · click to open
         </span>
       </div>
 
@@ -276,10 +320,7 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
           style={{ display: 'block' }}
         />
         {tooltip && (
-          <div
-            className="cn-graph-tooltip"
-            style={{ left: tooltip.x, top: tooltip.y }}
-          >
+          <div className="cn-graph-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
             {tooltip.text}
           </div>
         )}

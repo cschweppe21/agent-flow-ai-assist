@@ -48,6 +48,18 @@
   background: var(--cn-paper);
   flex-shrink: 0;
   gap: 16px;
+  /* Allow dragging the window from the header bar in Electron */
+  -webkit-app-region: drag;
+}
+
+/* Interactive header children must opt out of drag */
+.cn-header > * {
+  -webkit-app-region: no-drag;
+}
+
+/* In Electron, shift content right to clear traffic-light buttons */
+.cn-header-electron {
+  padding-left: 80px;
 }
 
 .cn-wordmark {
@@ -277,6 +289,16 @@
   border-radius: 2px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.cn-rating-badge {
+  margin-left: auto;
+  font-size: 0.62rem;
+  font-family: -apple-system, sans-serif;
+  color: var(--cn-green);
+  opacity: 0.85;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .cn-add-btn {

@@ -157,6 +157,7 @@ function ContactRow({
   selected: boolean;
   onSelect: (id: string) => void;
 }) {
+  const avg = avgRating(contact);
   return (
     <div
       className={`cn-contact-item ${selected ? 'selected' : ''}`}
@@ -167,6 +168,7 @@ function ContactRow({
         {contact.name || <span style={{ color: 'var(--cn-ink-faint)', fontStyle: 'italic' }}>Unnamed</span>}
         {contact.alumni && <span className="cn-flag-alumni">Alumni</span>}
         {contact.followUpRecommended && <span className="cn-flag-followup" title="Follow-up recommended" />}
+        {avg > 0 && <span className="cn-rating-badge">{avg.toFixed(1)}★</span>}
       </div>
       <div className="cn-contact-sub">
         {[contact.title, contact.company].filter(Boolean).join(' · ') || (

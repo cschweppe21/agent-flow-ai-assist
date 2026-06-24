@@ -7,17 +7,12 @@ interface Props {
   saveState: 'saved' | 'saving';
 }
 
+const isElectron = typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron');
+
 export function Header({ view, onViewChange, saveState }: Props) {
   return (
-    <header className="cn-header">
+    <header className={`cn-header${isElectron ? ' cn-header-electron' : ''}`}>
       <div className="cn-wordmark">
-        <img
-          src={`${import.meta.env.BASE_URL}logo.svg`}
-          alt="Connected"
-          width="22"
-          height="22"
-          style={{ borderRadius: 5, display: 'block', flexShrink: 0 }}
-        />
         Connected
       </div>
 
