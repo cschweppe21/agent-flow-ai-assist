@@ -48,7 +48,8 @@ export function ContactDetail({
   function handleAttachFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const filePath = (file as any).path ?? '';
+    const api = (window as any).electronAPI;
+    const filePath = api?.getFilePath ? api.getFilePath(file) : ((file as any).path ?? '');
     const attachment: Attachment = {
       id: generateId(),
       name: file.name.replace(/\.[^.]+$/, ''),
