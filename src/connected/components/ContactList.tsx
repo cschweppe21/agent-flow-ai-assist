@@ -9,6 +9,8 @@ interface Props {
   onAdd: () => void;
 }
 
+const REACH_OUT_STATUSES = new Set(['to_reach_out', 'dormant']);
+
 export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<FilterMode>('all');
@@ -20,7 +22,6 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
   const filtered = useMemo(() => {
     let list = [...contacts];
 
-    // Full-text search across multiple fields
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter(
@@ -34,28 +35,20 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
       );
     }
 
-    // Quick filters
     if (filter === 'followUp') list = list.filter((c) => c.followUpRecommended);
     if (filter === 'priority') list = list.filter((c) => c.priority);
 
-    // Relationship-age filter
     if (ageFilter !== 'any') {
       const months = parseInt(ageFilter, 10);
       const cutoff = new Date(now);
       cutoff.setMonth(cutoff.getMonth() - months);
-      list = list.filter((c) => {
-        const created = new Date(c.createdAt);
-        return created >= cutoff;
-      });
+      list = list.filter((c) => new Date(c.createdAt) >= cutoff);
     }
 
-    // Sort
     list.sort((a, b) => {
       switch (sort) {
-        case 'name':
-          return a.name.localeCompare(b.name);
-        case 'company':
-          return (a.company ?? '').localeCompare(b.company ?? '');
+        case 'name': return a.name.localeCompare(b.name);
+        case 'company': return (a.company ?? '').localeCompare(b.company ?? '');
         case 'followUp': {
           const aDate = a.followUpDate ? new Date(a.followUpDate) : new Date(8640000000000000);
           const bDate = b.followUpDate ? new Date(b.followUpDate) : new Date(8640000000000000);
@@ -66,15 +59,18 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
           const bLast = lastInteractionDate(b)?.getTime() ?? new Date(b.createdAt).getTime();
           return bLast - aLast;
         }
-        case 'rating':
-          return avgRating(b) - avgRating(a);
-        default:
-          return 0;
+        case 'rating': return avgRating(b) - avgRating(a);
+        default: return 0;
       }
     });
 
     return list;
   }, [contacts, query, filter, sort, ageFilter]);
+
+  // Split into sections only when showing all contacts without extra filters
+  const useSections = filter === 'all' && !query.trim() && ageFilter === 'any';
+  const reachOut = useSections ? filtered.filter((c) => REACH_OUT_STATUSES.has(c.status)) : [];
+  const talkedTo = useSections ? filtered.filter((c) => !REACH_OUT_STATUSES.has(c.status)) : filtered;
 
   return (
     <>
@@ -87,29 +83,10 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
           onChange={(e) => setQuery(e.target.value)}
         />
         <div className="cn-filter-row">
-          <button
-            className={`cn-chip ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All
-          </button>
-          <button
-            className={`cn-chip ${filter === 'followUp' ? 'active' : ''}`}
-            onClick={() => setFilter('followUp')}
-          >
-            Follow-up
-          </button>
-          <button
-            className={`cn-chip ${filter === 'priority' ? 'active' : ''}`}
-            onClick={() => setFilter('priority')}
-          >
-            Priority
-          </button>
-          <select
-            className="cn-sort-select"
-            value={sort}
-            onChange={(e) => setSort(e.target.value as SortField)}
-          >
+          <button className={`cn-chip ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>All</button>
+          <button className={`cn-chip ${filter === 'followUp' ? 'active' : ''}`} onClick={() => setFilter('followUp')}>Follow-up</button>
+          <button className={`cn-chip ${filter === 'priority' ? 'active' : ''}`} onClick={() => setFilter('priority')}>Priority</button>
+          <select className="cn-sort-select" value={sort} onChange={(e) => setSort(e.target.value as SortField)}>
             <option value="name">Name</option>
             <option value="company">Company</option>
             <option value="followUp">Follow-up</option>
@@ -117,11 +94,7 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
             <option value="rating">Rating</option>
           </select>
         </div>
-        <select
-          className="cn-age-filter"
-          value={ageFilter}
-          onChange={(e) => setAgeFilter(e.target.value)}
-        >
+        <select className="cn-age-filter" value={ageFilter} onChange={(e) => setAgeFilter(e.target.value)}>
           <option value="any">Any age</option>
           <option value="3">Last 3 mo</option>
           <option value="6">Last 6 mo</option>
@@ -136,14 +109,34 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
             No contacts found.
           </div>
         )}
-        {filtered.map((c) => (
-          <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
-        ))}
+
+        {useSections ? (
+          <>
+            {reachOut.length > 0 && (
+              <>
+                <div className="cn-list-section-header">Reach Out · {reachOut.length}</div>
+                {reachOut.map((c) => (
+                  <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
+                ))}
+              </>
+            )}
+            {talkedTo.length > 0 && (
+              <>
+                <div className="cn-list-section-header">Talked To · {talkedTo.length}</div>
+                {talkedTo.map((c) => (
+                  <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
+                ))}
+              </>
+            )}
+          </>
+        ) : (
+          filtered.map((c) => (
+            <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
+          ))
+        )}
       </div>
 
-      <button className="cn-add-btn" onClick={onAdd}>
-        + New Contact
-      </button>
+      <button className="cn-add-btn" onClick={onAdd}>+ New Contact</button>
     </>
   );
 }

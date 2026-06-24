@@ -1,13 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import type { Contact, ContactStatus, Interaction, Referral } from '../types';
+import React, { useRef, useCallback } from 'react';
+import type { Contact, ContactStatus, Interaction, Referral, Attachment } from '../types';
 import { RatingStars } from './RatingStars';
 import { InteractionLog } from './InteractionLog';
 import { GroundworkSection } from './GroundworkSection';
 import { ReferralSection } from './ReferralSection';
-import * as pdfjsLib from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+import { generateId } from '../storage';
 
 interface Props {
   contact: Contact;
@@ -46,36 +43,34 @@ export function ContactDetail({
     [contact.id, onChange]
   );
 
-  const pdfInputRef = useRef<HTMLInputElement>(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const attachInputRef = useRef<HTMLInputElement>(null);
 
-  async function handlePdfFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAttachFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPdfLoading(true);
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const pageTexts: string[] = [];
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const line = content.items
-          .map((item) => ('str' in item ? item.str : ''))
-          .join(' ')
-          .replace(/ {2,}/g, ' ')
-          .trim();
-        if (line) pageTexts.push(line);
-      }
-      const extracted = pageTexts.join('\n').trim();
-      const prefix = contact.notes ? contact.notes + '\n\n' : '';
-      update('notes', prefix + `[${file.name}]\n${extracted}`);
-    } catch {
-      alert('Could not read PDF. Make sure it contains selectable text (not a scanned image).');
-    } finally {
-      setPdfLoading(false);
-      e.target.value = '';
+    const filePath = (file as any).path ?? '';
+    const attachment: Attachment = {
+      id: generateId(),
+      name: file.name.replace(/\.[^.]+$/, ''),
+      path: filePath,
+    };
+    update('attachments', [...(contact.attachments ?? []), attachment]);
+    e.target.value = '';
+  }
+
+  function openAttachment(att: Attachment) {
+    const api = (window as any).electronAPI;
+    if (api?.openFile && att.path) {
+      api.openFile(att.path);
     }
+  }
+
+  function renameAttachment(id: string, name: string) {
+    update('attachments', (contact.attachments ?? []).map((a) => a.id === id ? { ...a, name } : a));
+  }
+
+  function removeAttachment(id: string) {
+    update('attachments', (contact.attachments ?? []).filter((a) => a.id !== id));
   }
 
   const referredBy = contact.referredById
@@ -223,23 +218,7 @@ export function ContactDetail({
       <div className="cn-divider" />
 
       {/* Notes */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-        <div className="cn-section-label" style={{ margin: 0 }}>Notes</div>
-        <button
-          className="cn-import-pdf-btn"
-          onClick={() => pdfInputRef.current?.click()}
-          disabled={pdfLoading}
-        >
-          {pdfLoading ? 'Reading…' : '↑ Import PDF'}
-        </button>
-        <input
-          ref={pdfInputRef}
-          type="file"
-          accept=".pdf"
-          style={{ display: 'none' }}
-          onChange={handlePdfFile}
-        />
-      </div>
+      <div className="cn-section-label">Notes</div>
       <textarea
         className="cn-textarea"
         placeholder="Free-form notes…"
@@ -247,6 +226,26 @@ export function ContactDetail({
         onChange={(e) => update('notes', e.target.value)}
         rows={5}
       />
+
+      {/* File attachments */}
+      <div className="cn-attachments">
+        {(contact.attachments ?? []).map((att) => (
+          <div key={att.id} className="cn-attachment-chip">
+            <span className="cn-attachment-icon" onClick={() => openAttachment(att)} title="Open file">📎</span>
+            <input
+              className="cn-attachment-name"
+              value={att.name}
+              onChange={(e) => renameAttachment(att.id, e.target.value)}
+              title="Click to rename"
+            />
+            <button className="cn-attachment-remove" onClick={() => removeAttachment(att.id)} title="Remove">×</button>
+          </div>
+        ))}
+        <button className="cn-attach-btn" onClick={() => attachInputRef.current?.click()}>
+          + Attach file
+        </button>
+        <input ref={attachInputRef} type="file" style={{ display: 'none' }} onChange={handleAttachFile} />
+      </div>
 
       <div className="cn-divider" />
 

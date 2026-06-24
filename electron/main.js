@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,7 +19,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true,
+      sandbox: false, // required for preload IPC
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
 
@@ -35,6 +36,8 @@ function createWindow() {
     return { action: 'deny' };
   });
 }
+
+ipcMain.handle('open-file', (_event, filePath) => shell.openPath(filePath));
 
 app.whenReady().then(() => {
   createWindow();

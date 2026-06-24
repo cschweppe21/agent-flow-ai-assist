@@ -10,7 +10,7 @@ export type InteractionType = 'call' | 'email' | 'meeting' | 'message' | 'event'
 
 export interface Interaction {
   id: string;
-  date: string; // ISO date string
+  date: string;
   type: InteractionType;
   note: string;
 }
@@ -20,12 +20,12 @@ export interface Referral {
   name: string;
   company?: string;
   school?: string;
-  smartContact?: string; // email, phone, or LinkedIn — auto-detected
-  contactId?: string; // linked contact if created
+  smartContact?: string;
+  contactId?: string;
 }
 
 export interface Ratings {
-  responsiveness: number; // 1–5
+  responsiveness: number;
   rapport: number;
   helpfulness: number;
 }
@@ -34,6 +34,12 @@ export interface Groundwork {
   personal: string[];
   company: string[];
   industry: string[];
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  path: string;
 }
 
 export interface Contact {
@@ -47,7 +53,7 @@ export interface Contact {
   school?: string;
   gradYear?: string;
   industry?: string;
-  referredById?: string; // contactId of who referred them
+  referredById?: string;
   status: ContactStatus;
   priority: boolean;
   alumni: boolean;
@@ -56,8 +62,9 @@ export interface Contact {
   groundwork: Groundwork;
   interactions: Interaction[];
   referrals: Referral[];
-  followUpDate?: string; // explicit ISO date
-  followUpRecommended?: boolean; // auto-computed
+  followUpDate?: string;
+  followUpRecommended?: boolean;
+  attachments?: Attachment[];
   createdAt: string;
   updatedAt: string;
 }
