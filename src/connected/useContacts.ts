@@ -130,9 +130,10 @@ export function useContacts() {
       // Create a new contact for the referred person
       const now = new Date().toISOString();
       const newContactId = generateId();
+      const referralDate = referralData.date ?? now.slice(0, 10);
       const referralInteraction: Interaction = {
         id: generateId(),
-        date: now.slice(0, 10),
+        date: referralDate,
         type: 'other',
         note: `Referred by ${contacts.find((c) => c.id === referrerId)?.name ?? 'someone'}.`,
       };
@@ -180,7 +181,7 @@ export function useContacts() {
 
       const referralLogEntry: Interaction = {
         id: generateId(),
-        date: now.slice(0, 10),
+        date: referralDate,
         type: 'other',
         note: `Referred ${cleanName}.`,
       };
@@ -201,6 +202,22 @@ export function useContacts() {
       return newContactId;
     },
     [contacts, setAndSave]
+  );
+
+  const updateInteraction = useCallback(
+    (contactId: string, interactionId: string, updates: Partial<Interaction>) => {
+      setAndSave((prev) =>
+        prev.map((c) => {
+          if (c.id !== contactId) return c;
+          return {
+            ...c,
+            interactions: c.interactions.map((i) => i.id === interactionId ? { ...i, ...updates } : i),
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
+    },
+    [setAndSave]
   );
 
   const deleteReferral = useCallback(
@@ -247,6 +264,7 @@ export function useContacts() {
     deleteContact,
     addInteraction,
     deleteInteraction,
+    updateInteraction,
     addReferral,
     deleteReferral,
     updateReferral,

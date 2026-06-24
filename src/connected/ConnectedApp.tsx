@@ -16,6 +16,7 @@ export function ConnectedApp() {
     deleteContact,
     addInteraction,
     deleteInteraction,
+    updateInteraction,
     addReferral,
     deleteReferral,
     updateReferral,
@@ -91,6 +92,7 @@ export function ConnectedApp() {
                 onDelete={handleDelete}
                 onAddInteraction={addInteraction}
                 onDeleteInteraction={deleteInteraction}
+                onUpdateInteraction={updateInteraction}
                 onAddReferral={handleAddReferral}
                 onDeleteReferral={handleDeleteReferral}
                 onUpdateReferral={handleUpdateReferral}

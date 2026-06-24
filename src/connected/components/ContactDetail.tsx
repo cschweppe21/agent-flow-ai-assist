@@ -13,6 +13,7 @@ interface Props {
   onDelete: (id: string) => void;
   onAddInteraction: (contactId: string, interaction: Omit<Interaction, 'id'>) => void;
   onDeleteInteraction: (contactId: string, interactionId: string) => void;
+  onUpdateInteraction: (contactId: string, interactionId: string, updates: Partial<Interaction>) => void;
   onAddReferral: (referrerId: string, data: Omit<Referral, 'id' | 'contactId'>) => void;
   onDeleteReferral: (referrerId: string, referralId: string) => void;
   onUpdateReferral: (referrerId: string, referralId: string, updates: Partial<Referral>) => void;
@@ -35,6 +36,7 @@ export function ContactDetail({
   onDelete,
   onAddInteraction,
   onDeleteInteraction,
+  onUpdateInteraction,
   onAddReferral,
   onDeleteReferral,
   onUpdateReferral,
@@ -281,6 +283,7 @@ export function ContactDetail({
         interactions={contact.interactions}
         onAdd={(interaction) => onAddInteraction(contact.id, interaction)}
         onDelete={(interactionId) => onDeleteInteraction(contact.id, interactionId)}
+        onUpdate={(interactionId, updates) => onUpdateInteraction(contact.id, interactionId, updates)}
       />
 
       <div style={{ height: 40 }} />
