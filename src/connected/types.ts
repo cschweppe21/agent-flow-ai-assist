@@ -71,6 +71,6 @@ export interface Contact {
 }
 
 export type ViewMode = 'contacts' | 'graph';
-export type GraphCluster = 'company' | 'school';
+export type GraphCluster = 'company' | 'school' | 'industry';
 export type SortField = 'name' | 'company' | 'followUp' | 'recency' | 'rating';
 export type FilterMode = 'all' | 'followUp' | 'priority';
