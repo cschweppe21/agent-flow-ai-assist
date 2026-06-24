@@ -22,6 +22,7 @@ export interface Referral {
   school?: string;
   smartContact?: string;
   contactId?: string;
+  date?: string;
 }
 
 export interface Ratings {

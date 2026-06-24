@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import './connected.css';
-import type { ViewMode, Interaction, Referral } from './types';
+import type { ViewMode, Referral } from './types';
 import { useContacts } from './useContacts';
 import { Header } from './components/Header';
 import { ContactList } from './components/ContactList';
@@ -17,6 +17,8 @@ export function ConnectedApp() {
     addInteraction,
     deleteInteraction,
     addReferral,
+    deleteReferral,
+    updateReferral,
   } = useContacts();
 
   const [view, setView] = useState<ViewMode>('contacts');
@@ -44,6 +46,14 @@ export function ConnectedApp() {
 
   function handleAddReferral(referrerId: string, data: Omit<Referral, 'id' | 'contactId'>) {
     addReferral(referrerId, data);
+  }
+
+  function handleDeleteReferral(referrerId: string, referralId: string) {
+    deleteReferral(referrerId, referralId);
+  }
+
+  function handleUpdateReferral(referrerId: string, referralId: string, updates: Partial<Referral>) {
+    updateReferral(referrerId, referralId, updates);
   }
 
   const handleGraphSelect = useCallback((id: string) => {
@@ -82,6 +92,8 @@ export function ConnectedApp() {
                 onAddInteraction={addInteraction}
                 onDeleteInteraction={deleteInteraction}
                 onAddReferral={handleAddReferral}
+                onDeleteReferral={handleDeleteReferral}
+                onUpdateReferral={handleUpdateReferral}
                 onNavigate={setSelectedId}
               />
             ) : (

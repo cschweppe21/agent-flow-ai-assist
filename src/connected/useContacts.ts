@@ -175,6 +175,7 @@ export function useContacts() {
         school: referralData.school,
         smartContact: referralData.smartContact,
         contactId: newContactId,
+        date: referralData.date ?? now.slice(0, 10),
       };
 
       const referralLogEntry: Interaction = {
@@ -202,6 +203,42 @@ export function useContacts() {
     [contacts, setAndSave]
   );
 
+  const deleteReferral = useCallback(
+    (referrerId: string, referralId: string) => {
+      setAndSave((prev) => {
+        const referrer = prev.find((c) => c.id === referrerId);
+        const referral = referrer?.referrals.find((r) => r.id === referralId);
+        const referredContactId = referral?.contactId;
+        return prev.map((c) => {
+          if (c.id === referrerId) {
+            return { ...c, referrals: c.referrals.filter((r) => r.id !== referralId), updatedAt: new Date().toISOString() };
+          }
+          if (referredContactId && c.id === referredContactId) {
+            return { ...c, referredById: undefined, updatedAt: new Date().toISOString() };
+          }
+          return c;
+        });
+      });
+    },
+    [setAndSave]
+  );
+
+  const updateReferral = useCallback(
+    (referrerId: string, referralId: string, updates: Partial<Referral>) => {
+      setAndSave((prev) =>
+        prev.map((c) => {
+          if (c.id !== referrerId) return c;
+          return {
+            ...c,
+            referrals: c.referrals.map((r) => r.id === referralId ? { ...r, ...updates } : r),
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
+    },
+    [setAndSave]
+  );
+
   return {
     contacts,
     saveState,
@@ -211,6 +248,8 @@ export function useContacts() {
     addInteraction,
     deleteInteraction,
     addReferral,
+    deleteReferral,
+    updateReferral,
   };
 }
 

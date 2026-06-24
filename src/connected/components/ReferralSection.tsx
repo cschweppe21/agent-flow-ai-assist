@@ -4,24 +4,28 @@ import type { Referral } from '../types';
 interface Props {
   referrals: Referral[];
   onAddReferral: (data: Omit<Referral, 'id' | 'contactId'>) => void;
+  onDeleteReferral: (referralId: string) => void;
+  onUpdateReferral: (referralId: string, updates: Partial<Referral>) => void;
   onNavigate: (contactId: string) => void;
 }
 
-export function ReferralSection({ referrals, onAddReferral, onNavigate }: Props) {
+export function ReferralSection({ referrals, onAddReferral, onDeleteReferral, onUpdateReferral, onNavigate }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [company, setCompany] = useState('');
   const [school, setSchool] = useState('');
   const [smartContact, setSmartContact] = useState('');
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   function submit() {
     const cleanName = name.replace(/,/g, '').trim();
     if (!cleanName) return;
-    onAddReferral({ name: cleanName, company: company.trim() || undefined, school: school.trim() || undefined, smartContact: smartContact.trim() || undefined });
+    onAddReferral({ name: cleanName, company: company.trim() || undefined, school: school.trim() || undefined, smartContact: smartContact.trim() || undefined, date });
     setName('');
     setCompany('');
     setSchool('');
     setSmartContact('');
+    setDate(new Date().toISOString().slice(0, 10));
     setShowForm(false);
   }
 
@@ -34,35 +38,57 @@ export function ReferralSection({ referrals, onAddReferral, onNavigate }: Props)
       )}
 
       {referrals.map((r) => (
-        <div
-          key={r.id}
-          className="cn-referral-item"
-          onClick={() => r.contactId && onNavigate(r.contactId)}
-        >
-          <div>
+        <div key={r.id} className="cn-referral-item" style={{ alignItems: 'flex-start' }}>
+          <div style={{ flex: 1, cursor: r.contactId ? 'pointer' : 'default' }} onClick={() => r.contactId && onNavigate(r.contactId)}>
             <div className="cn-referral-name">{r.name}</div>
             <div className="cn-referral-sub">
               {[r.company, r.school].filter(Boolean).join(' · ')}
               {r.smartContact && ` · ${r.smartContact}`}
             </div>
           </div>
-          {r.contactId && (
-            <span style={{ fontSize: '0.65rem', color: 'var(--cn-green)', fontFamily: 'sans-serif' }}>
-              View →
-            </span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <input
+              type="date"
+              className="cn-field-input"
+              value={r.date ?? ''}
+              onChange={(e) => onUpdateReferral(r.id, { date: e.target.value || undefined })}
+              style={{ fontSize: '0.7rem', padding: '2px 4px', width: 120 }}
+              title="Referral date"
+            />
+            {r.contactId && (
+              <span style={{ fontSize: '0.65rem', color: 'var(--cn-green)', fontFamily: 'sans-serif', cursor: 'pointer' }} onClick={() => onNavigate(r.contactId!)}>
+                View →
+              </span>
+            )}
+            <button
+              className="cn-attachment-remove"
+              onClick={() => { if (confirm(`Remove referral for ${r.name}?`)) onDeleteReferral(r.id); }}
+              title="Remove referral"
+            >
+              ×
+            </button>
+          </div>
         </div>
       ))}
 
       {showForm ? (
         <div className="cn-add-referral-form">
-          <input
-            type="text"
-            placeholder="Name (required)"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            autoFocus
-          />
+          <div className="cn-referral-form-row">
+            <input
+              type="text"
+              placeholder="Name (required)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+            <input
+              type="date"
+              className="cn-field-input"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              title="Referral date"
+            />
+          </div>
           <div className="cn-referral-form-row">
             <input
               type="text"

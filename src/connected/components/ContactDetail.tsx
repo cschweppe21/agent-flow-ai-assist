@@ -14,6 +14,8 @@ interface Props {
   onAddInteraction: (contactId: string, interaction: Omit<Interaction, 'id'>) => void;
   onDeleteInteraction: (contactId: string, interactionId: string) => void;
   onAddReferral: (referrerId: string, data: Omit<Referral, 'id' | 'contactId'>) => void;
+  onDeleteReferral: (referrerId: string, referralId: string) => void;
+  onUpdateReferral: (referrerId: string, referralId: string, updates: Partial<Referral>) => void;
   onNavigate: (contactId: string) => void;
 }
 
@@ -34,6 +36,8 @@ export function ContactDetail({
   onAddInteraction,
   onDeleteInteraction,
   onAddReferral,
+  onDeleteReferral,
+  onUpdateReferral,
   onNavigate,
 }: Props) {
   const update = useCallback(
@@ -264,6 +268,8 @@ export function ContactDetail({
       <ReferralSection
         referrals={contact.referrals}
         onAddReferral={(data) => onAddReferral(contact.id, data)}
+        onDeleteReferral={(referralId) => onDeleteReferral(contact.id, referralId)}
+        onUpdateReferral={(referralId, updates) => onUpdateReferral(contact.id, referralId, updates)}
         onNavigate={onNavigate}
       />
 
