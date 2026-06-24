@@ -20,7 +20,7 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: false, // required for preload IPC
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   });
 
