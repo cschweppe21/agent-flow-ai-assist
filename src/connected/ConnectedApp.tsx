@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import './connected.css';
 import type { ViewMode, Interaction, Referral } from './types';
 import { useContacts } from './useContacts';
@@ -21,6 +21,14 @@ export function ConnectedApp() {
 
   const [view, setView] = useState<ViewMode>('contacts');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState<boolean>(() => localStorage.getItem('cn_dark') === 'true');
+
+  function toggleDark() {
+    setDarkMode((d) => {
+      localStorage.setItem('cn_dark', String(!d));
+      return !d;
+    });
+  }
 
   const selectedContact = contacts.find((c) => c.id === selectedId) ?? null;
 
@@ -35,19 +43,23 @@ export function ConnectedApp() {
   }
 
   function handleAddReferral(referrerId: string, data: Omit<Referral, 'id' | 'contactId'>) {
-    const newId = addReferral(referrerId, data);
-    // Optionally navigate to the new referred contact
-    // setSelectedId(newId);
+    addReferral(referrerId, data);
   }
 
-  function handleGraphSelect(id: string) {
+  const handleGraphSelect = useCallback((id: string) => {
     setView('contacts');
     setSelectedId(id);
-  }
+  }, []);
 
   return (
-    <div className="cn-app">
-      <Header view={view} onViewChange={setView} saveState={saveState} />
+    <div className={`cn-app${darkMode ? ' cn-dark' : ''}`}>
+      <Header
+        view={view}
+        onViewChange={setView}
+        saveState={saveState}
+        darkMode={darkMode}
+        onToggleDark={toggleDark}
+      />
 
       <div className="cn-body">
         {view === 'contacts' ? (
@@ -79,7 +91,11 @@ export function ConnectedApp() {
             )}
           </>
         ) : (
-          <NetworkGraph contacts={contacts} onSelectContact={handleGraphSelect} />
+          <NetworkGraph
+            contacts={contacts}
+            onSelectContact={handleGraphSelect}
+            darkMode={darkMode}
+          />
         )}
       </div>
     </div>

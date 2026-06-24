@@ -6,6 +6,7 @@ import type { GraphCluster } from '../types';
 interface Props {
   contacts: Contact[];
   onSelectContact: (id: string) => void;
+  darkMode: boolean;
 }
 
 type NodeKind = 'person' | 'hub';
@@ -25,12 +26,17 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 }
 
 const CLUSTER_COLORS = [
-  '#2E5141', '#3a7a5a', '#5b8c5a', '#7fa87f',
+  '#2E6B54', '#3a7a5a', '#5b8c5a', '#7fa87f',
   '#a06b3c', '#c08040', '#7a5c8c', '#5c7a8c',
   '#8c5c5c', '#6e8c6e', '#3c5c8c', '#8c7a3c',
 ];
 
-export function NetworkGraph({ contacts, onSelectContact }: Props) {
+// Estimate radius needed to fit label text (sans-serif ~6px/char at 0.68rem)
+function hubRadius(label: string, count: number): number {
+  return Math.max(34, label.length * 4.0 + 14, Math.sqrt(count) * 13);
+}
+
+export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef(onSelectContact);
@@ -47,29 +53,29 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
     const { width, height } = containerRef.current.getBoundingClientRect();
     if (width === 0 || height === 0) return;
 
+    const bgColor = darkMode ? '#1c1c1a' : '#FBFBF9';
+    const textColor = darkMode ? '#e8e8e4' : '#1a1a18';
+
+    svg.append('rect').attr('width', width).attr('height', height).attr('fill', bgColor);
+
     if (contacts.length === 0) {
       svg.append('text')
         .attr('x', width / 2).attr('y', height / 2)
         .attr('text-anchor', 'middle')
-        .attr('fill', '#9a9a94')
+        .attr('fill', darkMode ? '#5a5a54' : '#9a9a94')
         .attr('font-size', '0.85rem')
         .attr('font-family', '-apple-system, sans-serif')
         .text('Add contacts to see the web');
       return;
     }
 
-    // Cluster keys and counts
     const clusterKeyOf = (c: Contact) =>
-      cluster === 'company'
-        ? (c.company ?? '__none__')
-        : (c.school ?? '__none__');
+      cluster === 'company' ? (c.company ?? '__none__') : (c.school ?? '__none__');
 
-    const clusterLabelOf = (c: Contact) => {
-      if (cluster === 'company') return c.company ?? '(No company)';
-      if (!c.school) return '(No school)';
-      const year = c.gradYear ? ` '${c.gradYear.slice(-2)}` : '';
-      return `${c.school}${year}`;
-    };
+    const clusterLabelOf = (c: Contact) =>
+      cluster === 'company'
+        ? (c.company ?? 'No company')
+        : (c.school ?? 'No school');
 
     const clusterKeys = Array.from(new Set(contacts.map(clusterKeyOf)));
     const clusterCounts: Record<string, number> = {};
@@ -77,12 +83,13 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
       const k = clusterKeyOf(c);
       clusterCounts[k] = (clusterCounts[k] ?? 0) + 1;
     });
+    const clusterLabelMap: Record<string, string> = {};
+    contacts.forEach((c) => { clusterLabelMap[clusterKeyOf(c)] = clusterLabelOf(c); });
 
     const colorScale = d3.scaleOrdinal<string, string>().domain(clusterKeys).range(CLUSTER_COLORS);
 
-    // Hub centers arranged in a ring
     const numClusters = clusterKeys.length;
-    const ringR = Math.min(width, height) * (numClusters === 1 ? 0 : 0.3);
+    const ringR = Math.min(width, height) * (numClusters === 1 ? 0 : 0.32);
     const clusterCenters: Record<string, { x: number; y: number }> = {};
     clusterKeys.forEach((k, i) => {
       const angle = (i / numClusters) * 2 * Math.PI - Math.PI / 2;
@@ -92,17 +99,16 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
       };
     });
 
-    // Build hub nodes (fixed at cluster centers)
+    // Hub nodes (fixed)
     const hubNodes: GraphNode[] = clusterKeys.map((k) => {
-      const label = cluster === 'company'
-        ? (k === '__none__' ? 'No company' : k)
-        : (k === '__none__' ? 'No school' : k);
+      const label = clusterLabelMap[k] ?? k;
+      const r = hubRadius(label, clusterCounts[k] ?? 1);
       return {
         id: `hub:${k}`,
         kind: 'hub',
         label,
         clusterKey: k,
-        radius: Math.max(26, Math.sqrt(clusterCounts[k] ?? 1) * 13),
+        radius: r,
         x: clusterCenters[k].x,
         y: clusterCenters[k].y,
         fx: clusterCenters[k].x,
@@ -110,7 +116,7 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
       };
     });
 
-    // Build person nodes
+    // Person nodes
     const personNodes: GraphNode[] = contacts.map((c) => {
       const ck = clusterKeyOf(c);
       const center = clusterCenters[ck];
@@ -119,25 +125,23 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
         kind: 'person',
         label: c.name || 'Unnamed',
         clusterKey: ck,
-        radius: c.priority ? 13 : 9,
+        radius: c.priority ? 14 : 10,
         priority: c.priority,
         followUpRecommended: c.followUpRecommended,
-        x: center.x + (Math.random() - 0.5) * 60,
-        y: center.y + (Math.random() - 0.5) * 60,
+        x: center.x + (Math.random() - 0.5) * 80,
+        y: center.y + (Math.random() - 0.5) * 80,
       };
     });
 
     const allNodes: GraphNode[] = [...hubNodes, ...personNodes];
     const personIdSet = new Set(personNodes.map((n) => n.id));
 
-    // Cluster links: person → their hub
     const clusterLinks: GraphLink[] = personNodes.map((p) => ({
       source: p.id,
       target: `hub:${p.clusterKey}`,
       kind: 'cluster' as const,
     }));
 
-    // Referral links: person → person (both must exist)
     const referralLinks: GraphLink[] = [];
     contacts.forEach((c) => {
       c.referrals.forEach((r) => {
@@ -151,13 +155,11 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
 
     const g = svg.append('g');
 
-    // Zoom/pan
     const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.15, 5])
+      .scaleExtent([0.1, 6])
       .on('zoom', (event) => g.attr('transform', event.transform.toString()));
     svg.call(zoom as any);
 
-    // Simulation
     const simulation = d3
       .forceSimulation(allNodes as d3.SimulationNodeDatum[])
       .force(
@@ -165,65 +167,99 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
         d3.forceLink<GraphNode, GraphLink>(allLinks)
           .id((d) => d.id)
           .distance((l) => {
-            if (l.kind === 'cluster') {
-              const pNode = (l.source as GraphNode);
-              const hNode = (l.target as GraphNode);
-              return (hNode.radius ?? 26) + (pNode.radius ?? 9) + 30;
-            }
-            return 100;
+            const hub = (l.target as GraphNode);
+            const person = (l.source as GraphNode);
+            return l.kind === 'cluster' ? (hub.radius ?? 34) + (person.radius ?? 10) + 28 : 110;
           })
-          .strength((l) => (l.kind === 'cluster' ? 0.9 : 0.05))
+          .strength((l) => (l.kind === 'cluster' ? 0.85 : 0.05))
       )
-      .force('charge', d3.forceManyBody().strength(-150))
-      .force('collision', d3.forceCollide<GraphNode>((d) => d.radius + 5))
+      .force('charge', d3.forceManyBody().strength(-200))
+      .force('collision', d3.forceCollide<GraphNode>((d) => d.radius + 6))
       .alphaDecay(0.025);
 
-    // Draw cluster links
+    // Cluster lines
     const clusterLinkEl = g
       .selectAll<SVGLineElement, GraphLink>('line.cl')
       .data(clusterLinks)
       .join('line')
       .attr('class', 'cl')
       .attr('stroke', (d) => colorScale((d.source as GraphNode).clusterKey ?? ''))
-      .attr('stroke-width', 1.2)
-      .attr('opacity', 0.35);
+      .attr('stroke-width', 1.5)
+      .attr('opacity', darkMode ? 0.45 : 0.35);
 
-    // Draw referral links
+    // Referral lines (dashed terracotta)
     const referralLinkEl = g
       .selectAll<SVGLineElement, GraphLink>('line.rl')
       .data(referralLinks)
       .join('line')
       .attr('class', 'rl')
-      .attr('stroke', '#b5533c')
-      .attr('stroke-width', 1.8)
-      .attr('stroke-dasharray', '5 4')
-      .attr('opacity', 0.75);
+      .attr('stroke', '#c0603a')
+      .attr('stroke-width', 2)
+      .attr('stroke-dasharray', '6 4')
+      .attr('opacity', 0.85);
 
-    // Draw hub nodes
+    // Hub nodes
     const hubEl = g
       .selectAll<SVGGElement, GraphNode>('g.hub')
       .data(hubNodes)
       .join('g')
       .attr('class', 'hub');
 
-    hubEl
-      .append('circle')
+    hubEl.append('circle')
       .attr('r', (d) => d.radius)
       .attr('fill', (d) => colorScale(d.clusterKey))
-      .attr('opacity', 0.9);
+      .attr('stroke', 'rgba(255,255,255,0.25)')
+      .attr('stroke-width', 2);
 
-    hubEl
-      .append('text')
-      .attr('text-anchor', 'middle')
-      .attr('dy', '0.35em')
-      .attr('font-size', (d) => `${Math.max(0.55, Math.min(0.75, d.radius / 40))}rem`)
-      .attr('font-family', '-apple-system, sans-serif')
-      .attr('font-weight', '600')
-      .attr('fill', 'white')
-      .attr('pointer-events', 'none')
-      .text((d) => d.label.length > 14 ? d.label.slice(0, 13) + '…' : d.label);
+    // Hub label — split into two lines if long
+    hubEl.each(function (d) {
+      const el = d3.select(this);
+      const words = d.label.split(' ');
+      if (words.length > 1 && d.label.length > 10) {
+        const mid = Math.ceil(words.length / 2);
+        const line1 = words.slice(0, mid).join(' ');
+        const line2 = words.slice(mid).join(' ');
+        el.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '-0.45em')
+          .attr('font-size', `${Math.max(0.58, Math.min(0.74, d.radius / 55))}rem`)
+          .attr('font-family', '-apple-system, sans-serif')
+          .attr('font-weight', '700')
+          .attr('fill', 'white')
+          .attr('pointer-events', 'none')
+          .attr('paint-order', 'stroke')
+          .attr('stroke', colorScale(d.clusterKey))
+          .attr('stroke-width', 3)
+          .text(line1);
+        el.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.75em')
+          .attr('font-size', `${Math.max(0.58, Math.min(0.74, d.radius / 55))}rem`)
+          .attr('font-family', '-apple-system, sans-serif')
+          .attr('font-weight', '700')
+          .attr('fill', 'white')
+          .attr('pointer-events', 'none')
+          .attr('paint-order', 'stroke')
+          .attr('stroke', colorScale(d.clusterKey))
+          .attr('stroke-width', 3)
+          .text(line2);
+      } else {
+        el.append('text')
+          .attr('text-anchor', 'middle')
+          .attr('dy', '0.35em')
+          .attr('font-size', `${Math.max(0.58, Math.min(0.74, d.radius / 55))}rem`)
+          .attr('font-family', '-apple-system, sans-serif')
+          .attr('font-weight', '700')
+          .attr('fill', 'white')
+          .attr('pointer-events', 'none')
+          .attr('paint-order', 'stroke')
+          .attr('stroke', colorScale(d.clusterKey))
+          .attr('stroke-width', 3)
+          .text(d.label);
+      }
+    });
 
-    // Draw person nodes
+    // Person nodes
     const personEl = g
       .selectAll<SVGGElement, GraphNode>('g.person')
       .data(personNodes)
@@ -231,8 +267,7 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
       .attr('class', 'person')
       .style('cursor', 'pointer')
       .call(
-        d3
-          .drag<SVGGElement, GraphNode>()
+        d3.drag<SVGGElement, GraphNode>()
           .on('start', (event, d) => {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x; d.fy = d.y;
@@ -250,26 +285,35 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
       })
       .on('mouseleave', () => setTooltip(null));
 
-    personEl
-      .append('circle')
+    personEl.append('circle')
       .attr('r', (d) => d.radius)
       .attr('fill', (d) => colorScale(d.clusterKey))
-      .attr('stroke', (d) => (d.followUpRecommended ? '#c0392b' : 'white'))
+      .attr('stroke', (d) => (d.followUpRecommended ? '#e05c4a' : (darkMode ? 'rgba(255,255,255,0.3)' : 'white')))
       .attr('stroke-width', (d) => (d.followUpRecommended ? 2.5 : 1.5));
 
-    personEl
-      .append('text')
+    personEl.append('text')
       .attr('text-anchor', 'middle')
       .attr('dy', '0.35em')
-      .attr('font-size', '0.5rem')
+      .attr('font-size', '0.55rem')
       .attr('font-family', '-apple-system, sans-serif')
+      .attr('font-weight', '600')
       .attr('fill', 'white')
       .attr('pointer-events', 'none')
       .text((d) =>
         d.label.split(' ').map((w) => w[0] ?? '').join('').slice(0, 2).toUpperCase()
       );
 
-    // Tick
+    // Name label below person nodes
+    personEl.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', (d) => d.radius + 11)
+      .attr('font-size', '0.58rem')
+      .attr('font-family', '-apple-system, sans-serif')
+      .attr('fill', textColor)
+      .attr('opacity', 0.85)
+      .attr('pointer-events', 'none')
+      .text((d) => d.label.length > 16 ? d.label.slice(0, 15) + '…' : d.label);
+
     simulation.on('tick', () => {
       clusterLinkEl
         .attr('x1', (d) => ((d.source as GraphNode).x ?? 0))
@@ -288,7 +332,7 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
     });
 
     return () => { simulation.stop(); };
-  }, [contacts, cluster]); // onSelectContact intentionally excluded — use callbackRef
+  }, [contacts, cluster, darkMode]);
 
   return (
     <div className="cn-graph-pane">
@@ -304,21 +348,15 @@ export function NetworkGraph({ contacts, onSelectContact }: Props) {
           className={`cn-chip ${cluster === 'school' ? 'active' : ''}`}
           onClick={() => setCluster('school')}
         >
-          School + Year
+          School
         </button>
         <span style={{ marginLeft: 'auto', fontSize: '0.68rem', color: 'var(--cn-ink-faint)', fontFamily: 'sans-serif' }}>
-          — lines to hub = cluster · dashed orange = referral · red border = follow-up · click to open
+          Lines = cluster · dashed = referral · red border = follow-up · click to open
         </span>
       </div>
 
       <div ref={containerRef} style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        <svg
-          ref={svgRef}
-          className="cn-graph-svg"
-          width="100%"
-          height="100%"
-          style={{ display: 'block' }}
-        />
+        <svg ref={svgRef} className="cn-graph-svg" width="100%" height="100%" style={{ display: 'block' }} />
         {tooltip && (
           <div className="cn-graph-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
             {tooltip.text}

@@ -1,9 +1,13 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import type { Contact, ContactStatus, Interaction, Referral } from '../types';
 import { RatingStars } from './RatingStars';
 import { InteractionLog } from './InteractionLog';
 import { GroundworkSection } from './GroundworkSection';
 import { ReferralSection } from './ReferralSection';
+import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 interface Props {
   contact: Contact;
@@ -41,6 +45,38 @@ export function ContactDetail({
     },
     [contact.id, onChange]
   );
+
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  async function handlePdfFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPdfLoading(true);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pageTexts: string[] = [];
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const line = content.items
+          .map((item) => ('str' in item ? item.str : ''))
+          .join(' ')
+          .replace(/ {2,}/g, ' ')
+          .trim();
+        if (line) pageTexts.push(line);
+      }
+      const extracted = pageTexts.join('\n').trim();
+      const prefix = contact.notes ? contact.notes + '\n\n' : '';
+      update('notes', prefix + `[${file.name}]\n${extracted}`);
+    } catch {
+      alert('Could not read PDF. Make sure it contains selectable text (not a scanned image).');
+    } finally {
+      setPdfLoading(false);
+      e.target.value = '';
+    }
+  }
 
   const referredBy = contact.referredById
     ? contacts.find((c) => c.id === contact.referredById)
@@ -187,7 +223,23 @@ export function ContactDetail({
       <div className="cn-divider" />
 
       {/* Notes */}
-      <div className="cn-section-label">Notes</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <div className="cn-section-label" style={{ margin: 0 }}>Notes</div>
+        <button
+          className="cn-import-pdf-btn"
+          onClick={() => pdfInputRef.current?.click()}
+          disabled={pdfLoading}
+        >
+          {pdfLoading ? 'Reading…' : '↑ Import PDF'}
+        </button>
+        <input
+          ref={pdfInputRef}
+          type="file"
+          accept=".pdf"
+          style={{ display: 'none' }}
+          onChange={handlePdfFile}
+        />
+      </div>
       <textarea
         className="cn-textarea"
         placeholder="Free-form notes…"

@@ -15,6 +15,22 @@
   --cn-amber: #d4862a;
 }
 
+/* Dark mode overrides */
+.cn-dark {
+  --cn-green: #4e9a72;
+  --cn-green-light: #5eaa82;
+  --cn-green-muted: #1a2e24;
+  --cn-paper: #1c1c1a;
+  --cn-paper-dark: #161614;
+  --cn-ink: #e8e8e4;
+  --cn-ink-muted: #9a9a94;
+  --cn-ink-faint: #505050;
+  --cn-border: #2e2e2c;
+  --cn-border-light: #262624;
+  --cn-red: #e05c4a;
+  --cn-amber: #e09040;
+}
+
 * { box-sizing: border-box; }
 
 .cn-app {
@@ -111,12 +127,29 @@
   color: var(--cn-ink-faint);
   letter-spacing: 0.05em;
   flex-shrink: 0;
-  min-width: 60px;
+  min-width: 46px;
   text-align: right;
 }
 
 .cn-save-status.saving {
   color: var(--cn-amber);
+}
+
+.cn-dark-toggle {
+  background: none;
+  border: 1px solid var(--cn-border);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--cn-ink-muted);
+  transition: all 0.15s;
+  line-height: 1.2;
+}
+
+.cn-dark-toggle:hover {
+  border-color: var(--cn-green);
+  color: var(--cn-green);
 }
 
 /* Layout */
@@ -299,6 +332,32 @@
   opacity: 0.85;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.cn-import-pdf-btn {
+  font-size: 0.67rem;
+  font-family: -apple-system, sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--cn-border);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--cn-ink-muted);
+  cursor: pointer;
+  transition: all 0.12s;
+  flex-shrink: 0;
+}
+
+.cn-import-pdf-btn:hover:not(:disabled) {
+  border-color: var(--cn-green);
+  color: var(--cn-green);
+}
+
+.cn-import-pdf-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .cn-add-btn {
