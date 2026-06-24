@@ -1,5 +1,9 @@
-const { app, BrowserWindow, shell } = require('electron');
-const path = require('path');
+import { app, BrowserWindow, shell } from 'electron';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const isDev = process.env.ELECTRON_DEV === 'true';
 
@@ -26,7 +30,6 @@ function createWindow() {
     win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
   }
 
-  // Open external links in the default browser, not Electron
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
     return { action: 'deny' };

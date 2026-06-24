@@ -6,11 +6,36 @@
   "description": "A minimal personal CRM for managing professional relationships",
   "author": "Connected",
   "type": "module",
+  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && ELECTRON_DEV=true electron .\"",
+    "electron:build:mac": "vite build && electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.connected.crm",
+    "productName": "Connected",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ]
+    },
+    "dmg": {
+      "title": "Connected"
+    }
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
