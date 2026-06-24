@@ -19,7 +19,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false, // required for preload IPC
+      sandbox: true,
       preload: path.join(__dirname, 'preload.cjs'),
     },
   });
