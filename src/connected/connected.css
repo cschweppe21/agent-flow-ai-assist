@@ -63,11 +63,6 @@
   flex-shrink: 0;
 }
 
-.cn-tick {
-  width: 14px;
-  height: 14px;
-  color: var(--cn-green);
-}
 
 .cn-view-toggle {
   display: flex;

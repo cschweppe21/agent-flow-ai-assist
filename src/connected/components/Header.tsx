@@ -11,15 +11,7 @@ export function Header({ view, onViewChange, saveState }: Props) {
   return (
     <header className="cn-header">
       <div className="cn-wordmark">
-        <svg className="cn-tick" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <polyline
-            points="2,9 6,13 14,4"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <img src="/logo.svg" alt="Connected logo" width="22" height="22" style={{ borderRadius: 5, display: 'block', flexShrink: 0 }} />
         Connected
       </div>
 
