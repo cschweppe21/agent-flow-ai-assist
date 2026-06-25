@@ -49,6 +49,14 @@ export function ContactDetail({
     [contact.id, onChange]
   );
 
+  function openLinkedIn(url: string | undefined) {
+    if (!url) return;
+    const href = url.startsWith('http') ? url : `https://${url}`;
+    const api = (window as any).electronAPI;
+    if (api?.openUrl) api.openUrl(href);
+    else window.open(href, '_blank');
+  }
+
   const attachInputRef = useRef<HTMLInputElement>(null);
 
   function handleAttachFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -168,7 +176,27 @@ export function ContactDetail({
           <input className="cn-field-input" type="tel" value={contact.phone ?? ''} placeholder="+1 (555) 000-0000" onChange={(e) => update('phone', e.target.value)} />
         </Field>
         <Field label="LinkedIn">
-          <input className="cn-field-input" value={contact.linkedIn ?? ''} placeholder="linkedin.com/in/…" onChange={(e) => update('linkedIn', e.target.value)} />
+          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <input
+              className="cn-field-input"
+              value={contact.linkedIn ?? ''}
+              placeholder="linkedin.com/in/…"
+              onChange={(e) => update('linkedIn', e.target.value)}
+              onDoubleClick={() => openLinkedIn(contact.linkedIn)}
+              title="Double-click to open in browser"
+              style={{ flex: 1 }}
+            />
+            {contact.linkedIn && (
+              <button
+                className="cn-icon-btn"
+                title="Open LinkedIn in browser"
+                onClick={() => openLinkedIn(contact.linkedIn)}
+                style={{ fontSize: '0.7rem', padding: '2px 6px', flexShrink: 0 }}
+              >
+                ↗
+              </button>
+            )}
+          </div>
         </Field>
         <Field label="Industry">
           <input className="cn-field-input" value={contact.industry ?? ''} placeholder="Industry" onChange={(e) => update('industry', e.target.value)} />

@@ -38,6 +38,7 @@ function createWindow() {
 }
 
 ipcMain.handle('open-file', (_event, filePath) => shell.openPath(filePath));
+ipcMain.handle('open-url', (_event, url) => shell.openExternal(url));
 
 app.whenReady().then(() => {
   createWindow();
