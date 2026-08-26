@@ -276,6 +276,32 @@
   z-index: 1;
 }
 
+.cn-list-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 16px 5px 20px;
+  font-size: 0.68rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  color: var(--cn-ink-muted);
+  background: var(--cn-paper);
+  border-bottom: 1px solid var(--cn-border-light);
+  cursor: pointer;
+  user-select: none;
+  position: sticky;
+  top: 26px;
+  z-index: 1;
+}
+.cn-list-group-header:hover { background: var(--cn-paper-dark); }
+.cn-list-group-arrow { font-size: 0.5rem; opacity: 0.6; }
+.cn-list-group-count {
+  margin-left: auto;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--cn-ink-faint);
+}
+
 .cn-contact-item {
   padding: 11px 16px;
   border-bottom: 1px solid var(--cn-border-light);

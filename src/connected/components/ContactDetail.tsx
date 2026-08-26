@@ -218,6 +218,16 @@ export function ContactDetail({
             ))}
           </select>
         </Field>
+        {(contact.status === 'to_reach_out' || contact.status === 'dormant') && (
+          <Field label="Group">
+            <input
+              className="cn-field-input"
+              value={contact.reachOutGroup ?? ''}
+              placeholder="e.g. Finance, MBA Network…"
+              onChange={(e) => update('reachOutGroup', e.target.value || undefined)}
+            />
+          </Field>
+        )}
         <Field label="Follow-up Date">
           <input
             className="cn-field-input"

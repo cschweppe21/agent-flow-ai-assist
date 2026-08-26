@@ -16,8 +16,17 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
   const [filter, setFilter] = useState<FilterMode>('all');
   const [sort, setSort] = useState<SortField>('name');
   const [ageFilter, setAgeFilter] = useState<string>('any');
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   const now = new Date();
+
+  function toggleGroup(key: string) {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
 
   const filtered = useMemo(() => {
     let list = [...contacts];
@@ -67,10 +76,26 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
     return list;
   }, [contacts, query, filter, sort, ageFilter]);
 
-  // Split into sections only when showing all contacts without extra filters
   const useSections = filter === 'all' && !query.trim() && ageFilter === 'any';
   const reachOut = useSections ? filtered.filter((c) => REACH_OUT_STATUSES.has(c.status)) : [];
   const talkedTo = useSections ? filtered.filter((c) => !REACH_OUT_STATUSES.has(c.status)) : filtered;
+
+  // Group reach-out contacts by reachOutGroup
+  const reachOutGroups = useMemo(() => {
+    const named: Record<string, Contact[]> = {};
+    const ungrouped: Contact[] = [];
+    for (const c of reachOut) {
+      if (c.reachOutGroup?.trim()) {
+        const g = c.reachOutGroup.trim();
+        (named[g] = named[g] ?? []).push(c);
+      } else {
+        ungrouped.push(c);
+      }
+    }
+    return { named, ungrouped };
+  }, [reachOut]);
+
+  const hasGroups = Object.keys(reachOutGroups.named).length > 0;
 
   return (
     <>
@@ -115,11 +140,51 @@ export function ContactList({ contacts, selectedId, onSelect, onAdd }: Props) {
             {reachOut.length > 0 && (
               <>
                 <div className="cn-list-section-header">Reach Out · {reachOut.length}</div>
-                {reachOut.map((c) => (
-                  <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
-                ))}
+
+                {/* Named groups */}
+                {Object.entries(reachOutGroups.named).map(([groupName, members]) => {
+                  const key = `group:${groupName}`;
+                  const collapsed = collapsedGroups.has(key);
+                  return (
+                    <React.Fragment key={key}>
+                      <div
+                        className="cn-list-group-header"
+                        onClick={() => toggleGroup(key)}
+                        title={collapsed ? 'Show group' : 'Hide group'}
+                      >
+                        <span className="cn-list-group-arrow">{collapsed ? '▶' : '▼'}</span>
+                        {groupName}
+                        <span className="cn-list-group-count">{members.length}</span>
+                      </div>
+                      {!collapsed && members.map((c) => (
+                        <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
+                      ))}
+                    </React.Fragment>
+                  );
+                })}
+
+                {/* Ungrouped contacts */}
+                {reachOutGroups.ungrouped.length > 0 && (
+                  <>
+                    {hasGroups && (
+                      <div
+                        className="cn-list-group-header"
+                        onClick={() => toggleGroup('group:__ungrouped__')}
+                        title={collapsedGroups.has('group:__ungrouped__') ? 'Show' : 'Hide'}
+                      >
+                        <span className="cn-list-group-arrow">{collapsedGroups.has('group:__ungrouped__') ? '▶' : '▼'}</span>
+                        Other
+                        <span className="cn-list-group-count">{reachOutGroups.ungrouped.length}</span>
+                      </div>
+                    )}
+                    {!collapsedGroups.has('group:__ungrouped__') && reachOutGroups.ungrouped.map((c) => (
+                      <ContactRow key={c.id} contact={c} selected={c.id === selectedId} onSelect={onSelect} />
+                    ))}
+                  </>
+                )}
               </>
             )}
+
             {talkedTo.length > 0 && (
               <>
                 <div className="cn-list-section-header">Talked To · {talkedTo.length}</div>

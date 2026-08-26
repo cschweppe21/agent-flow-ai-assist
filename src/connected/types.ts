@@ -66,6 +66,7 @@ export interface Contact {
   followUpDate?: string;
   followUpRecommended?: boolean;
   attachments?: Attachment[];
+  reachOutGroup?: string;
   createdAt: string;
   updatedAt: string;
 }
