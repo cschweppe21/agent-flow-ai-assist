@@ -2,19 +2,7 @@ import type { Contact } from './types';
 
 const KEY = 'connected_contacts_v1';
 
-function getAPI() {
-  return (window as any).electronAPI ?? null;
-}
-
 export function loadContacts(): Contact[] {
-  // Electron: data was read synchronously by preload before React started
-  const api = getAPI();
-  if (api?.initialData) {
-    try {
-      return JSON.parse(api.initialData) as Contact[];
-    } catch {}
-  }
-  // Web / fallback: use localStorage
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return [];
@@ -26,14 +14,10 @@ export function loadContacts(): Contact[] {
 
 export function saveContacts(contacts: Contact[]): void {
   const json = JSON.stringify(contacts);
-  // Save to file in Electron (persists across rebuilds)
-  const api = getAPI();
-  if (api?.saveData) {
-    api.saveData(json);
-  } else {
-    // Web fallback
-    localStorage.setItem(KEY, json);
-  }
+  localStorage.setItem(KEY, json);
+  // Also write to file in Electron as a backup
+  const api = (window as any).electronAPI;
+  if (api?.saveData) api.saveData(json);
 }
 
 export function generateId(): string {
