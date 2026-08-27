@@ -24,6 +24,12 @@ export function Header({ view, onViewChange, saveState, darkMode, onToggleDark }
           Contacts
         </button>
         <button
+          className={`cn-toggle-btn ${view === 'companies' ? 'active' : ''}`}
+          onClick={() => onViewChange('companies')}
+        >
+          Companies
+        </button>
+        <button
           className={`cn-toggle-btn ${view === 'graph' ? 'active' : ''}`}
           onClick={() => onViewChange('graph')}
         >

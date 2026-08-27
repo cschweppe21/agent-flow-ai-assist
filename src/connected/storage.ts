@@ -1,6 +1,7 @@
-import type { Contact } from './types';
+import type { Contact, Company } from './types';
 
 const KEY = 'connected_contacts_v1';
+const COMPANIES_KEY = 'connected_companies_v1';
 
 export function loadContacts(): Contact[] {
   try {
@@ -18,6 +19,20 @@ export function saveContacts(contacts: Contact[]): void {
   // Also write to file in Electron as a backup
   const api = (window as any).electronAPI;
   if (api?.saveData) api.saveData(json);
+}
+
+export function loadCompanies(): Company[] {
+  try {
+    const raw = localStorage.getItem(COMPANIES_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as Company[];
+  } catch {
+    return [];
+  }
+}
+
+export function saveCompanies(companies: Company[]): void {
+  localStorage.setItem(COMPANIES_KEY, JSON.stringify(companies));
 }
 
 export function generateId(): string {

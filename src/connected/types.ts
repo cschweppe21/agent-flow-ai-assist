@@ -71,7 +71,20 @@ export interface Contact {
   updatedAt: string;
 }
 
-export type ViewMode = 'contacts' | 'graph';
+export interface Company {
+  id: string;
+  name: string;
+  industry?: string;
+  targetLocations?: string;
+  website?: string;
+  notes?: string;
+  priority: boolean;
+  target: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ViewMode = 'contacts' | 'graph' | 'companies';
 export type GraphCluster = 'company' | 'school' | 'industry';
 export type SortField = 'name' | 'company' | 'followUp' | 'recency' | 'rating';
 export type FilterMode = 'all' | 'followUp' | 'priority';

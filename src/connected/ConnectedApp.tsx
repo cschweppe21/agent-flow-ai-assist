@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import './connected.css';
-import type { ViewMode, Referral } from './types';
+import type { ViewMode, Referral, Company } from './types';
 import { useContacts } from './useContacts';
+import { useCompanies } from './useCompanies';
 import { Header } from './components/Header';
 import { ContactList } from './components/ContactList';
 import { ContactDetail } from './components/ContactDetail';
+import { CompanyList } from './components/CompanyList';
+import { CompanyDetail } from './components/CompanyDetail';
 import { NetworkGraph } from './components/NetworkGraph';
 
 export function ConnectedApp() {
@@ -22,8 +25,11 @@ export function ConnectedApp() {
     updateReferral,
   } = useContacts();
 
+  const { companies, createCompany, updateCompany, deleteCompany } = useCompanies();
+
   const [view, setView] = useState<ViewMode>('contacts');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
   const [darkMode, setDarkMode] = useState<boolean>(() => localStorage.getItem('cn_dark') === 'true');
 
   function toggleDark() {
@@ -34,6 +40,7 @@ export function ConnectedApp() {
   }
 
   const selectedContact = contacts.find((c) => c.id === selectedId) ?? null;
+  const selectedCompany = companies.find((c) => c.id === selectedCompanyId) ?? null;
 
   function handleAdd() {
     const c = createContact();
@@ -43,6 +50,16 @@ export function ConnectedApp() {
   function handleDelete(id: string) {
     deleteContact(id);
     if (selectedId === id) setSelectedId(null);
+  }
+
+  function handleAddCompany() {
+    const c = createCompany();
+    setSelectedCompanyId(c.id);
+  }
+
+  function handleDeleteCompany(id: string) {
+    deleteCompany(id);
+    if (selectedCompanyId === id) setSelectedCompanyId(null);
   }
 
   function handleAddReferral(referrerId: string, data: Omit<Referral, 'id' | 'contactId'>) {
@@ -62,6 +79,12 @@ export function ConnectedApp() {
     setSelectedId(id);
   }, []);
 
+  // Navigate from company detail → contacts view with that contact selected
+  function handleNavigateToContact(contactId: string) {
+    setView('contacts');
+    setSelectedId(contactId);
+  }
+
   return (
     <div className={`cn-app${darkMode ? ' cn-dark' : ''}`}>
       <Header
@@ -73,7 +96,7 @@ export function ConnectedApp() {
       />
 
       <div className="cn-body">
-        {view === 'contacts' ? (
+        {view === 'contacts' && (
           <>
             <div className="cn-list-pane">
               <ContactList
@@ -104,9 +127,39 @@ export function ConnectedApp() {
               </div>
             )}
           </>
-        ) : (
+        )}
+
+        {view === 'companies' && (
+          <>
+            <div className="cn-list-pane">
+              <CompanyList
+                companies={companies}
+                selectedId={selectedCompanyId}
+                onSelect={setSelectedCompanyId}
+                onAdd={handleAddCompany}
+              />
+            </div>
+
+            {selectedCompany ? (
+              <CompanyDetail
+                company={selectedCompany}
+                contacts={contacts}
+                onChange={updateCompany}
+                onDelete={handleDeleteCompany}
+                onNavigateContact={handleNavigateToContact}
+              />
+            ) : (
+              <div className="cn-detail-empty">
+                Select a company or create a new one
+              </div>
+            )}
+          </>
+        )}
+
+        {view === 'graph' && (
           <NetworkGraph
             contacts={contacts}
+            companies={companies}
             onSelectContact={handleGraphSelect}
             darkMode={darkMode}
           />

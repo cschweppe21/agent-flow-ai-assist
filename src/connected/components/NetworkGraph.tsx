@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import * as d3 from 'd3';
-import type { Contact } from '../types';
+import type { Contact, Company } from '../types';
 import type { GraphCluster } from '../types';
 
 interface Props {
   contacts: Contact[];
+  companies: Company[];
   onSelectContact: (id: string) => void;
   darkMode: boolean;
 }
@@ -56,7 +57,7 @@ function wrapHubLabel(label: string): { lines: string[]; fontSize: number } {
   return { lines, fontSize };
 }
 
-export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
+export function NetworkGraph({ contacts, companies, onSelectContact, darkMode }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const callbackRef = useRef(onSelectContact);
@@ -71,6 +72,31 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [highlightedKey, setHighlightedKey] = useState<string | null>(null);
   const [searchMsg, setSearchMsg] = useState('');
+  const [industryFilter, setIndustryFilter] = useState<string>('');
+
+  // Build a map of company name → Company profile for Target/industry lookups
+  const companyMap = useMemo(() => {
+    const m = new Map<string, Company>();
+    companies.forEach((co) => { if (co.name.trim()) m.set(co.name.trim().toLowerCase(), co); });
+    return m;
+  }, [companies]);
+
+  // All distinct industries from company profiles
+  const allIndustries = useMemo(() => {
+    const set = new Set<string>();
+    companies.forEach((co) => { if (co.industry?.trim()) set.add(co.industry.trim()); });
+    return Array.from(set).sort();
+  }, [companies]);
+
+  // Contacts filtered by industry (only when cluster = 'company' and a filter is selected)
+  const filteredContacts = useMemo(() => {
+    if (!industryFilter || cluster !== 'company') return contacts;
+    return contacts.filter((c) => {
+      if (!c.company?.trim()) return false;
+      const co = companyMap.get(c.company.trim().toLowerCase());
+      return co?.industry?.trim() === industryFilter;
+    });
+  }, [contacts, industryFilter, cluster, companyMap]);
 
   function handleSearch() {
     const q = searchQuery.trim().toLowerCase();
@@ -136,7 +162,7 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
 
     svg.append('rect').attr('width', width).attr('height', height).attr('fill', bgColor);
 
-    if (contacts.length === 0) {
+    if (filteredContacts.length === 0) {
       svg.append('text')
         .attr('x', width / 2).attr('y', height / 2)
         .attr('text-anchor', 'middle')
@@ -158,9 +184,9 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
       return c.industry ?? 'No industry';
     };
 
-    const clusterKeys = Array.from(new Set(contacts.map(clusterKeyOf)));
+    const clusterKeys = Array.from(new Set(filteredContacts.map(clusterKeyOf)));
     const clusterLabelMap: Record<string, string> = {};
-    contacts.forEach((c) => { clusterLabelMap[clusterKeyOf(c)] = clusterLabelOf(c); });
+    filteredContacts.forEach((c) => { clusterLabelMap[clusterKeyOf(c)] = clusterLabelOf(c); });
 
     const colorScale = d3.scaleOrdinal<string, string>().domain(clusterKeys).range(CLUSTER_COLORS);
 
@@ -191,7 +217,7 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
       fy: clusterCenters[k].y,
     }));
 
-    const personNodes: GraphNode[] = contacts.map((c) => {
+    const personNodes: GraphNode[] = filteredContacts.map((c) => {
       const ck = clusterKeyOf(c);
       const center = clusterCenters[ck];
       return {
@@ -217,7 +243,7 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
     }));
 
     const referralLinks: GraphLink[] = [];
-    contacts.forEach((c) => {
+    filteredContacts.forEach((c) => {
       c.referrals.forEach((r) => {
         if (r.contactId && personIdSet.has(r.contactId)) {
           referralLinks.push({ source: c.id, target: r.contactId, kind: 'referral' as const });
@@ -278,6 +304,31 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
       .attr('fill', (d) => colorScale(d.clusterKey))
       .attr('stroke', 'rgba(255,255,255,0.25)')
       .attr('stroke-width', 2);
+
+    // Target indicator: outer ring for companies marked as Target
+    if (cluster === 'company') {
+      hubEl.each(function (d) {
+        const co = companyMap.get(d.label.toLowerCase());
+        if (co?.target) {
+          d3.select(this).append('circle')
+            .attr('r', HUB_RADIUS + 6)
+            .attr('fill', 'none')
+            .attr('stroke', '#2e7d5b')
+            .attr('stroke-width', 3)
+            .attr('stroke-dasharray', '6 3')
+            .attr('pointer-events', 'none');
+          d3.select(this).append('text')
+            .attr('text-anchor', 'middle')
+            .attr('y', HUB_RADIUS + 18)
+            .attr('font-size', '0.58rem')
+            .attr('font-family', '-apple-system, sans-serif')
+            .attr('font-weight', '700')
+            .attr('fill', '#2e7d5b')
+            .attr('pointer-events', 'none')
+            .text('🎯');
+        }
+      });
+    }
 
     hubEl.each(function (d) {
       const el = d3.select(this);
@@ -364,18 +415,31 @@ export function NetworkGraph({ contacts, onSelectContact, darkMode }: Props) {
     });
 
     return () => { simulation.stop(); };
-  }, [contacts, cluster, darkMode]);
+  }, [filteredContacts, cluster, darkMode, companyMap]);
 
   return (
     <div className="cn-graph-pane">
       <div className="cn-graph-toolbar" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', width: '100%' }}>
           <span className="cn-section-label" style={{ margin: 0 }}>Cluster by</span>
-          <button className={`cn-chip ${cluster === 'company' ? 'active' : ''}`} onClick={() => setCluster('company')}>Company</button>
-          <button className={`cn-chip ${cluster === 'school' ? 'active' : ''}`} onClick={() => setCluster('school')}>School</button>
-          <button className={`cn-chip ${cluster === 'industry' ? 'active' : ''}`} onClick={() => setCluster('industry')}>Industry</button>
+          <button className={`cn-chip ${cluster === 'company' ? 'active' : ''}`} onClick={() => { setCluster('company'); setIndustryFilter(''); }}>Company</button>
+          <button className={`cn-chip ${cluster === 'school' ? 'active' : ''}`} onClick={() => { setCluster('school'); setIndustryFilter(''); }}>School</button>
+          <button className={`cn-chip ${cluster === 'industry' ? 'active' : ''}`} onClick={() => { setCluster('industry'); setIndustryFilter(''); }}>Industry</button>
+          {cluster === 'company' && allIndustries.length > 0 && (
+            <select
+              className="cn-sort-select"
+              value={industryFilter}
+              onChange={(e) => setIndustryFilter(e.target.value)}
+              style={{ height: 28, fontSize: '0.72rem' }}
+            >
+              <option value="">All industries</option>
+              {allIndustries.map((ind) => (
+                <option key={ind} value={ind}>{ind}</option>
+              ))}
+            </select>
+          )}
           <span style={{ marginLeft: 'auto', fontSize: '0.65rem', color: 'var(--cn-ink-faint)', fontFamily: 'sans-serif' }}>
-            Lines = group · dashed = referral · red border = follow-up · click to open
+            Lines = group · dashed = referral · red border = follow-up · 🎯 = Target · click to open
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
